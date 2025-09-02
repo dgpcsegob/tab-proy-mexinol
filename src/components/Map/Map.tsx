@@ -1128,23 +1128,38 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
 
       <div style={controlStackStyle}>
         <button 
-          className="map-control-button" 
-          onClick={toggleSatellite} 
-          title={isSatellite ? 'Ver mapa base' : 'Ver vista satelital'} 
-          aria-label="Cambiar vista de mapa"
-          style={controlButtonStyle}
-        >
-          <img src={isSatellite ? "/satelitec.png" : "/satelitebw.png"} alt="Cambiar vista" className="button-icon" style={buttonIconStyle}/>
-        </button>
-        <button 
-          className={`map-control-button ${isMeasuring ? 'active' : ''}`} 
-          onClick={toggleMeasurement} 
-          title={isMeasuring ? 'Terminar medición de ruta' : 'Medir ruta'} 
-          aria-label="Medir ruta"
-          style={controlButtonStyle}
-        >
-          <img src={isMeasuring ? "/rutac.png" : "/rutabw.png"} alt="Medir ruta" className="button-icon" style={buttonIconStyle}/>
-        </button>
+  className={`map-control-button ${isSatellite ? 'active' : ''}`} 
+  onClick={toggleSatellite} 
+  title={isSatellite ? 'Volver a mapa normal' : 'Ver mapa satelital'} 
+  aria-label="Cambiar vista"
+  style={controlButtonStyle}
+>
+  <img 
+    src={isSatellite ? 
+      `${process.env.PUBLIC_URL}/satelitec.png` : 
+      `${process.env.PUBLIC_URL}/satelitebw.png`} 
+    alt="Cambiar vista" 
+    className="button-icon" 
+    style={buttonIconStyle}
+  />
+</button>
+
+<button 
+  className={`map-control-button ${isMeasuring ? 'active' : ''}`} 
+  onClick={toggleMeasurement} 
+  title={isMeasuring ? 'Terminar medición de ruta' : 'Medir ruta'} 
+  aria-label="Medir ruta"
+  style={controlButtonStyle}
+>
+  <img 
+    src={isMeasuring ? 
+      `${process.env.PUBLIC_URL}/rutac.png` : 
+      `${process.env.PUBLIC_URL}/rutabw.png`} 
+    alt="Medir ruta" 
+    className="button-icon" 
+    style={buttonIconStyle}
+  />
+</button>
         <button 
           className={`map-control-button ${isMeasuringLine ? 'active' : ''}`} 
           onClick={toggleLineMeasurement} 
