@@ -5,21 +5,15 @@ import './App.css';
 
 const App: React.FC = () => {
   const [layersVisibility, setLayersVisibility] = useState<Record<string, boolean>>({
-    trazo1: true,
-    trazo2: true,
+    trazoa: true,
+    vianterior: true,
     comind: true,
     nucleosa: true,
-    puntos_zona1: false,
-    puntos_zona2: false,
-    mesas_cercanas_zona1: false,
-    mesas_cercanas_zona2: false,
-    regiones_zona1: false,
-    regiones_zona2: false,
+    buffer10: false,
+    buffer20: false,
+    afectaciones: false,
     LocalidadesSedeINPI: false,
-    PresidenciasMunicipales: false,
-    PuntosWiFiCFE_4G: false,
-    PuntosWiFiCFE_FIBRA: false,
-    PuntosWiFiCFE_SATELITAL: false,
+   
   });
 
   const handleToggle = (id: string) => {
@@ -33,19 +27,14 @@ const App: React.FC = () => {
     {
       title: 'Capas del Proyecto',
       items: [
-        { id: 'trazo1', label: 'Trazo 1', color: '#1551c0ff', shape: 'square', switch: true, checked: layersVisibility['trazo1'] },
-        { id: 'trazo2', label: 'Trazo 2', color: '#e68021ff', shape: 'square', switch: true, checked: layersVisibility['trazo2'] },
-        { id: 'comind', label: 'Comunidades Indígenas', color: '#1e5b4f', shape: 'circle', switch: true, checked: layersVisibility['comind'] },
-        { id: 'nucleosa', label: 'Núcleos Agrarios', color: '#f5f117ff', shape: 'square', switch: true, checked: layersVisibility['nucleosa'] },
+        { id: 'trazoa', label: 'Trazo actual', color: '#e04a4aff', shape: 'square', switch: true, checked: layersVisibility['trazoa'] },
+        { id: 'vianterior', label: 'Cartas de vía', color: '#3d3d3dff', shape: 'square', switch: true, checked: layersVisibility['vianterior'] },
+        { id: 'comind', label: 'Comunidades (area de influencia)', color: '#1e5b4f', shape: 'circle', switch: true, checked: layersVisibility['comind'] },
+        { id: 'nucleosa', label: 'Núcleos Agrarios (área de influencia)', color: '#f5f117ff', shape: 'square', switch: true, checked: layersVisibility['nucleosa'] },
+        { id: 'buffer10', label: 'Buffer 10m', color: '#ff7f00', shape: 'square', switch: true, checked: layersVisibility['buffer10'] },
+        { id: 'buffer20', label: 'Buffer 20m', color: '#377eb8', shape: 'square', switch: true, checked: layersVisibility['bufer20'] },
+        { id: 'afectaciones', label: 'Afectaciones', color: '#ff0000', shape: 'circle', switch: true, checked: layersVisibility['afectaciones'] },
         ]
-    },
-    {
-      title: 'Asambleas Regionales',
-      items: [
-        { id: 'puntos_zona1', label: 'Zona 1', color: '#e60026', shape: 'circle', switch: true, checked: layersVisibility['puntos_zona1'] },
-        { id: 'puntos_zona2', label: 'Zona 2', color: '#e60026', shape: 'circle', switch: true, checked: layersVisibility['puntos_zona2'] },
-        // { id: 'regiones_zona1', label: 'Regiones', color: '#66c2a5', shape: 'square', switch: true, checked: layersVisibility['regiones_zona1'] },
-      ],
     },
     {
       title: 'Comunidades Indígenas y Afromexicanas',
@@ -53,21 +42,7 @@ const App: React.FC = () => {
         { id: 'LocalidadesSedeINPI', label: 'Pueblos Indígenas', color: '#666666', shape: 'circle', switch: true, checked: layersVisibility['LocalidadesSedeINPI'] },
       ],
     },
-    {
-      title: 'Presidencias Municipales',
-      items: [
-        { id: 'PresidenciasMunicipales', label: 'Cabeceras Municipales', color: '#000000', shape: 'circle', switch: true, checked: layersVisibility['PresidenciasMunicipales'] },
-      ],
-    },
-    {
-      title: 'Despliegue WiFi CFE',
-      items: [
-        { id: 'PuntosWiFiCFE_4G', label: '4G', color: '#9f2241', shape: 'circle', switch: true, checked: layersVisibility['PuntosWiFiCFE_4G'] },
-        { id: 'PuntosWiFiCFE_FIBRA', label: 'Fibra o Cobre', color: '#cda578', shape: 'circle', switch: true, checked: layersVisibility['PuntosWiFiCFE_FIBRA'] },
-        { id: 'PuntosWiFiCFE_SATELITAL', label: 'Satelital', color: '#235b4e', shape: 'circle', switch: true, checked: layersVisibility['PuntosWiFiCFE_SATELITAL'] },
-      ],
-    },
-  ];
+   ];
 
   return (
     <div className="App">

@@ -155,48 +155,48 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     const popup = popupRef.current;
     
     const checkMeasurement = () => isMeasuringRef.current || isMeasuringLineRef.current;
-    const zonas = ['zona1', 'zona2'];
-    zonas.forEach(zona => {
-      map.on('mouseenter', `puntos_${zona}`, (e) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        map.getCanvas().style.cursor = 'pointer';
-        const props = (e.features[0] as any).properties;
-        if (props) {
-            popup.setLngLat((e as any).lngLat).setHTML(`<strong>Sede:</strong> ${props.Sede || 'N/A'}<br/><strong>Pueblo:</strong> ${props.Pueblo || 'N/A'}`).addTo(map);
-        }
-      });
-      map.on('mouseleave', `puntos_${zona}`, () => {
-        if (checkMeasurement()) return;
-        map.getCanvas().style.cursor = '';
-        popup.remove();
-      });
-    });
-    zonas.forEach(zona => {
-      map.on('mouseenter', `mesas_cercanas_${zona}`, (e) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        map.getCanvas().style.cursor = 'pointer';
-        const props = (e.features[0] as any).properties;
-        if(props) {
-            const tooltipHtml = `<div style="text-align: left;"><strong>Mesa de Paz</strong><br/><strong>Entidad:</strong> ${props.Entidad || 'N/A'}<br/><strong>Región:</strong> ${props.Region || 'N/A'}<br/><strong>Nombre:</strong> ${props.NomRegion || 'N/A'}</div>`;
-            popup.setLngLat((e as any).lngLat).setHTML(tooltipHtml).addTo(map);
-        }
-      });
-      map.on('mouseleave', `mesas_cercanas_${zona}`, () => {
-        if (checkMeasurement()) return;
-        map.getCanvas().style.cursor = '';
-        popup.remove();
-      });
-    });
+    // const zonas = ['zona1', 'zona2'];
+    // zonas.forEach(zona => {
+    //   map.on('mouseenter', `puntos_${zona}`, (e) => {
+    //     if (checkMeasurement() || !e.features || e.features.length === 0) return;
+    //     map.getCanvas().style.cursor = 'pointer';
+    //     const props = (e.features[0] as any).properties;
+    //     if (props) {
+    //         popup.setLngLat((e as any).lngLat).setHTML(`<strong>Sede:</strong> ${props.Sede || 'N/A'}<br/><strong>Pueblo:</strong> ${props.Pueblo || 'N/A'}`).addTo(map);
+    //     }
+    //   });
+    //   map.on('mouseleave', `puntos_${zona}`, () => {
+    //     if (checkMeasurement()) return;
+    //     map.getCanvas().style.cursor = '';
+    //     popup.remove();
+    //   });
+    // });
+    // zonas.forEach(zona => {
+    //   map.on('mouseenter', `mesas_cercanas_${zona}`, (e) => {
+    //     if (checkMeasurement() || !e.features || e.features.length === 0) return;
+    //     map.getCanvas().style.cursor = 'pointer';
+    //     const props = (e.features[0] as any).properties;
+    //     if(props) {
+    //         const tooltipHtml = `<div style="text-align: left;"><strong>Mesa de Paz</strong><br/><strong>Entidad:</strong> ${props.Entidad || 'N/A'}<br/><strong>Región:</strong> ${props.Region || 'N/A'}<br/><strong>Nombre:</strong> ${props.NomRegion || 'N/A'}</div>`;
+    //         popup.setLngLat((e as any).lngLat).setHTML(tooltipHtml).addTo(map);
+    //     }
+    //   });
+    //   map.on('mouseleave', `mesas_cercanas_${zona}`, () => {
+    //     if (checkMeasurement()) return;
+    //     map.getCanvas().style.cursor = '';
+    //     popup.remove();
+    //   });
+    // });
 
-    const comindPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const props = (e.features[0] as any).properties;
-      if (props) {
-        popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOMENT}<br/><strong>Municipio:</strong> ${props.NOMMUN}<br/><strong>Localidad:</strong> ${props.NOMLOC}`).addTo(map);
-      }
-    };
-    map.on('mouseenter', 'comind', comindPopup);
-    map.on('mouseleave', 'comind', () => { if (!checkMeasurement()) popup.remove(); });
+    // const comindPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
+    //   if (checkMeasurement() || !e.features || e.features.length === 0) return;
+    //   const props = (e.features[0] as any).properties;
+    //   if (props) {
+    //     popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOMENT}<br/><strong>Municipio:</strong> ${props.NOMMUN}<br/><strong>Localidad:</strong> ${props.NOMLOC}`).addTo(map);
+    //   }
+    // };
+    // map.on('mouseenter', 'comind', comindPopup);
+    // map.on('mouseleave', 'comind', () => { if (!checkMeasurement()) popup.remove(); });
 
     const nucleosaPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
@@ -208,15 +208,15 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     map.on('mouseenter', 'nucleosa', nucleosaPopup);
     map.on('mouseleave', 'nucleosa', () => { if (!checkMeasurement()) popup.remove(); });
 
-    const presidenciasMunicipalesPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const props = (e.features[0] as any).properties;
-      if (props) {
-        popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.entidad}<br/><strong>Municipio:</strong> ${props.municipio}<br/><strong>Dirección:</strong> ${props.direccion}`).addTo(map);
-      }
-    };
-    map.on('mouseenter', 'PresidenciasMunicipales', presidenciasMunicipalesPopup);
-    map.on('mouseleave', 'PresidenciasMunicipales', () => { if (!checkMeasurement()) popup.remove(); });
+    // const presidenciasMunicipalesPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
+    //   if (checkMeasurement() || !e.features || e.features.length === 0) return;
+    //   const props = (e.features[0] as any).properties;
+    //   if (props) {
+    //     popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.entidad}<br/><strong>Municipio:</strong> ${props.municipio}<br/><strong>Dirección:</strong> ${props.direccion}`).addTo(map);
+    //   }
+    // };
+    // map.on('mouseenter', 'PresidenciasMunicipales', presidenciasMunicipalesPopup);
+    // map.on('mouseleave', 'PresidenciasMunicipales', () => { if (!checkMeasurement()) popup.remove(); });
     
     const localidadesSedeINPIPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
@@ -228,17 +228,17 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     map.on('mouseenter', 'LocalidadesSedeINPI', localidadesSedeINPIPopup);
     map.on('mouseleave', 'LocalidadesSedeINPI', () => { if (!checkMeasurement()) popup.remove(); });
     
-    const tecnologias = ['PuntosWiFiCFE_4G', 'PuntosWiFiCFE_FIBRA', 'PuntosWiFiCFE_SATELITAL'];
-    tecnologias.forEach(id => {
-      map.on('mouseenter', id, (e) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        const props = (e.features[0] as any).properties;
-        if (props) {
-            popup.setLngLat((e as any).lngLat).setHTML(`<strong>Nombre:</strong> ${props['INMUEBLE NOMBRE']}<br/><strong>Tecnología:</strong> ${props['TECNOLOGIA']}`).addTo(map);
-        }
-      });
-      map.on('mouseleave', id, () => { if (!checkMeasurement()) popup.remove(); });
-    });
+    // const tecnologias = ['PuntosWiFiCFE_4G', 'PuntosWiFiCFE_FIBRA', 'PuntosWiFiCFE_SATELITAL'];
+    // tecnologias.forEach(id => {
+    //   map.on('mouseenter', id, (e) => {
+    //     if (checkMeasurement() || !e.features || e.features.length === 0) return;
+    //     const props = (e.features[0] as any).properties;
+    //     if (props) {
+    //         popup.setLngLat((e as any).lngLat).setHTML(`<strong>Nombre:</strong> ${props['INMUEBLE NOMBRE']}<br/><strong>Tecnología:</strong> ${props['TECNOLOGIA']}`).addTo(map);
+    //     }
+    //   });
+    //   map.on('mouseleave', id, () => { if (!checkMeasurement()) popup.remove(); });
+    // });
   }, []);
 
   const addRouteToMap = useCallback(async (points: LngLatLike[]) => {
@@ -318,27 +318,27 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
   }, [clearCurrentPoints, drawSingleLineOnMap]);
 
   const addVectorLayers = (map: maplibregl.Map) => {
-    const zonas = ['zona1', 'zona2'];
-    zonas.forEach(zona => {
-      if (!map.getSource(`puntos_${zona}`)) {
-        map.addSource(`puntos_${zona}`, { type: 'vector', url: `pmtiles://data/puntos_${zona}.pmtiles` });
-      }
-      if (!map.getLayer(`puntos_${zona}`)) {
-        map.addLayer({
-          id: `puntos_${zona}`, type: 'circle', source: `puntos_${zona}`, 'source-layer': `puntos_${zona}_tile`,
-          paint: { 'circle-radius': 5.5, 'circle-color': '#e60026', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 }
-        });
-      }
-      if (!map.getSource(`mesas_cercanas_${zona}`)) {
-        map.addSource(`mesas_cercanas_${zona}`, { type: 'vector', url: `pmtiles://data/mesas_cercanas_${zona}.pmtiles` });
-      }
-      if (!map.getLayer(`mesas_cercanas_${zona}`)) {
-        map.addLayer({
-          id: `mesas_cercanas_${zona}`, type: 'fill', source: `mesas_cercanas_${zona}`, 'source-layer': `mesas_cercanas_${zona}_tile`,
-          paint: { 'fill-color': '#f8e71c', 'fill-opacity': 0.4, 'fill-outline-color': '#333333' }
-        });
-      }
-    });
+    // const zonas = ['zona1', 'zona2'];
+    // zonas.forEach(zona => {
+    //   if (!map.getSource(`puntos_${zona}`)) {
+    //     map.addSource(`puntos_${zona}`, { type: 'vector', url: `pmtiles://data/puntos_${zona}.pmtiles` });
+    //   }
+    //   if (!map.getLayer(`puntos_${zona}`)) {
+    //     map.addLayer({
+    //       id: `puntos_${zona}`, type: 'circle', source: `puntos_${zona}`, 'source-layer': `puntos_${zona}_tile`,
+    //       paint: { 'circle-radius': 5.5, 'circle-color': '#e60026', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 }
+    //     });
+    //   }
+    //   if (!map.getSource(`mesas_cercanas_${zona}`)) {
+    //     map.addSource(`mesas_cercanas_${zona}`, { type: 'vector', url: `pmtiles://data/mesas_cercanas_${zona}.pmtiles` });
+    //   }
+    //   if (!map.getLayer(`mesas_cercanas_${zona}`)) {
+    //     map.addLayer({
+    //       id: `mesas_cercanas_${zona}`, type: 'fill', source: `mesas_cercanas_${zona}`, 'source-layer': `mesas_cercanas_${zona}_tile`,
+    //       paint: { 'fill-color': '#f8e71c', 'fill-opacity': 0.4, 'fill-outline-color': '#333333' }
+    //     });
+    //   }
+    // });
     
     if (!map.getSource('LocalidadesSedeINPI')) {
       map.addSource('LocalidadesSedeINPI', { type: 'vector', url: 'pmtiles://data/inpi.pmtiles' });
@@ -354,43 +354,74 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       });
     }
 
-    if (!map.getSource('trazo1')) {
-      map.addSource('trazo1', { type: 'vector', url: 'pmtiles://data/Tramo_1.pmtiles' });
-    }
-    if (!map.getLayer('trazo1')) {
-      map.addLayer({
-        id: 'trazo1', type: 'line', source: 'trazo1', 'source-layer': 'Tramo_1_tile',
-        paint: { 'line-color': '#334dbeff', 'line-width': 3.2, 'line-opacity': 1 },
-      });
-    }
-
-    if (!map.getSource('trazo2')) {
-      map.addSource('trazo2', { type: 'vector', url: 'pmtiles://data/Tramo_2.pmtiles' });
-    }
-    if (!map.getLayer('trazo2')) {
-      map.addLayer({
-        id: 'trazo2', type: 'line', source: 'trazo2', 'source-layer': 'Tramo_2_tile',
-        paint: { 'line-color': '#cf6823ff', 'line-width': 3.2, 'line-opacity': 1 },
-      });
-    }
-
     if (!map.getSource('nucleosa')) {
-      map.addSource('nucleosa', { type: 'vector', url: 'pmtiles://data/Nucleos_Agrarios.pmtiles' });
+      map.addSource('nucleosa', { type: 'vector', url: 'pmtiles://data/10nucleos.pmtiles' });
     }
     if (!map.getLayer('nucleosa')) {
       map.addLayer({
-        id: 'nucleosa', type: 'fill', source: 'nucleosa', 'source-layer': 'Nucleos_Agrarios_tile',
+        id: 'nucleosa', type: 'fill', source: 'nucleosa', 'source-layer': '10nucleos_tile',
         paint: { 'fill-color': '#eeff00ff', 'fill-opacity': 0.9, 'fill-outline-color': '#ffffffff', 'fill-antialias': true }
       });
     }
 
-    if (!map.getSource('comind')) {
-      map.addSource('comind', { type: 'vector', url: 'pmtiles://data/13_Com_Ind.pmtiles' });
+    if (!map.getSource('vianterior')) {
+      map.addSource('vianterior', { type: 'vector', url: 'pmtiles://data/via_anterior.pmtiles' });
     }
-    // Agregar halo tenue para comind (capa inferior)
+    if (!map.getLayer('vianterior')) {
+      map.addLayer({
+        id: 'vianterior', type: 'line', source: 'vianterior', 'source-layer': 'via_anterior_tile',
+        paint: { 'line-color': '#3d3d3dff', 'line-width': 1.5, 'line-opacity': 0.7 },
+      });
+    }
+
+       if (!map.getSource('buffer10')) {
+      map.addSource('buffer10', { type: 'vector', url: 'pmtiles://data/buffer10m.pmtiles' });
+    }
+    if (!map.getLayer('buffer10')) {
+      map.addLayer({
+        id: 'buffer10', type: 'line', source: 'buffer10', 'source-layer': 'buffer10m_tile',
+        paint: { 'line-color': '#e04a95ff', 'line-width': 1, 'line-opacity': 1 },
+      });
+    }
+
+    if (!map.getSource('buffer20')) {
+      map.addSource('buffer20', { type: 'vector', url: 'pmtiles://data/buffer20m.pmtiles' });
+    }
+    if (!map.getLayer('buffer20')) {
+      map.addLayer({
+        id: 'buffer20', type: 'line', source: 'buffer20', 'source-layer': 'buffer20m_tile',
+        paint: { 'line-color': '#a10d9aff', 'line-width': 1, 'line-opacity': 1 },
+      });
+    }
+
+    if (!map.getSource('afectaciones')) {
+      map.addSource('afectaciones', { type: 'vector', url: 'pmtiles://data/afectacion_ddv.pmtiles' });
+    }
+    if (!map.getLayer('afectaciones')) {
+      map.addLayer({
+        id: 'afectaciones', type: 'line', source: 'afectaciones', 'source-layer': 'afectacion_ddv_tile',
+        paint: { 'line-color': '#970909ff', 'line-width': 1.5, 'line-opacity': 1 },
+      });
+    }
+
+    if (!map.getSource('trazoa')) {
+      map.addSource('trazoa', { type: 'vector', url: 'pmtiles://data/trazo_actual_nv.pmtiles' });
+    }
+    if (!map.getLayer('trazoa')) {
+      map.addLayer({
+        id: 'trazoa', type: 'line', source: 'trazoa', 'source-layer': 'trazo_actual_nv_tile',
+        paint: { 'line-color': '#e04a4aff', 'line-width': 4, 'line-opacity': 0.7 },
+      });
+    }
+    
+
+
+    if (!map.getSource('comind')) {
+      map.addSource('comind', { type: 'vector', url: 'pmtiles://data/14comunidades.pmtiles' });
+    }
     if (!map.getLayer('comind-halo')) {
       map.addLayer({
-        id: 'comind-halo', type: 'circle', source: 'comind', 'source-layer': '13_Com_Ind_tile',
+        id: 'comind-halo', type: 'circle', source: 'comind', 'source-layer': '14comunidades_tile',
         paint: { 
           'circle-color': '#1e5b4f', 
           'circle-radius': 12, 
@@ -402,7 +433,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     // Capa de pulso para comind (sobre el halo, bajo el principal)
     if (!map.getLayer('comind-pulse')) {
       map.addLayer({
-        id: 'comind-pulse', type: 'circle', source: 'comind', 'source-layer': '13_Com_Ind_tile',
+        id: 'comind-pulse', type: 'circle', source: 'comind', 'source-layer': '14comunidades_tile',
         paint: { 
           'circle-color': '#1e5b4f', 
           'circle-radius': 15, 
@@ -413,38 +444,38 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     // Capa principal de comind (encima del halo y pulso)
     if (!map.getLayer('comind')) {
       map.addLayer({
-        id: 'comind', type: 'circle', source: 'comind', 'source-layer': '13_Com_Ind_tile',
+        id: 'comind', type: 'circle', source: 'comind', 'source-layer': '14comunidades_tile',
         paint: { 'circle-color': '#1e5b4f', 'circle-radius': 8, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2.5 }
       });
     }
 
-    if (!map.getSource('PresidenciasMunicipales')) {
-      map.addSource('PresidenciasMunicipales', { type: 'vector', url: 'pmtiles://data/PresidenciasMunicipales.pmtiles' });
-    }
-    if (!map.getLayer('PresidenciasMunicipales')) {
-      map.addLayer({
-        id: 'PresidenciasMunicipales', type: 'circle', source: 'PresidenciasMunicipales', 'source-layer': 'PresidenciasMunicipales_tile',
-        paint: { 'circle-radius': 4, 'circle-color': '#000000' }
-      });
-    }
+    // if (!map.getSource('PresidenciasMunicipales')) {
+    //   map.addSource('PresidenciasMunicipales', { type: 'vector', url: 'pmtiles://data/PresidenciasMunicipales.pmtiles' });
+    // }
+    // if (!map.getLayer('PresidenciasMunicipales')) {
+    //   map.addLayer({
+    //     id: 'PresidenciasMunicipales', type: 'circle', source: 'PresidenciasMunicipales', 'source-layer': 'PresidenciasMunicipales_tile',
+    //     paint: { 'circle-radius': 4, 'circle-color': '#000000' }
+    //   });
+    // }
     
-    if (!map.getSource('PuntosWiFiCFE')) {
-      map.addSource('PuntosWiFiCFE', { type: 'vector', url: 'pmtiles://data/PuntosWiFiCFE.pmtiles' });
-    }
-    const tecnologias = [
-      { id: 'PuntosWiFiCFE_4G', color: '#9f2241', filtro: '4G' },
-      { id: 'PuntosWiFiCFE_FIBRA', color: '#cda578', filtro: 'FIBRA O COBRE' },
-      { id: 'PuntosWiFiCFE_SATELITAL', color: '#235b4e', filtro: 'SATELITAL' },
-    ];
-    tecnologias.forEach(({ id, color, filtro }) => {
-      if (!map.getLayer(id)) {
-        map.addLayer({
-          id, type: 'circle', source: 'PuntosWiFiCFE', 'source-layer': 'PuntosWiFiCFE_tile',
-          filter: ['==', ['get', 'TECNOLOGIA'], filtro],
-          paint: { 'circle-radius': 2, 'circle-color': color, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 0 }
-        });
-      }
-    });
+    // if (!map.getSource('PuntosWiFiCFE')) {
+    //   map.addSource('PuntosWiFiCFE', { type: 'vector', url: 'pmtiles://data/PuntosWiFiCFE.pmtiles' });
+    // }
+    // const tecnologias = [
+    //   { id: 'PuntosWiFiCFE_4G', color: '#9f2241', filtro: '4G' },
+    //   { id: 'PuntosWiFiCFE_FIBRA', color: '#cda578', filtro: 'FIBRA O COBRE' },
+    //   { id: 'PuntosWiFiCFE_SATELITAL', color: '#235b4e', filtro: 'SATELITAL' },
+    // ];
+    // tecnologias.forEach(({ id, color, filtro }) => {
+    //   if (!map.getLayer(id)) {
+    //     map.addLayer({
+    //       id, type: 'circle', source: 'PuntosWiFiCFE', 'source-layer': 'PuntosWiFiCFE_tile',
+    //       filter: ['==', ['get', 'TECNOLOGIA'], filtro],
+    //       paint: { 'circle-radius': 2, 'circle-color': color, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 0 }
+    //     });
+    //   }
+    // });
   };
 
   const updateLayerVisibility = useCallback((map: maplibregl.Map) => {
@@ -861,18 +892,17 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       addVectorLayers(map); 
 
       const allToggleableLayers = [
-          'trazo1', 'trazo2', 'comind', 'comind-halo', 'comind-pulse', 'nucleosa',
-          'puntos_zona1', 'puntos_zona2',
-          'mesas_cercanas_zona1', 'mesas_cercanas_zona2',
-          'LocalidadesSedeINPI', 'PresidenciasMunicipales',
-          'PuntosWiFiCFE_4G', 'PuntosWiFiCFE_FIBRA', 'PuntosWiFiCFE_SATELITAL'
+          'trazoa', 'vianterior', 'buffer10', 'bufer20', 
+          'comind', 'comind-halo', 'comind-pulse', 'nucleosa',
+          'afectaciones', 'LocalidadesSedeINPI', 
+          
       ];
       allToggleableLayers.forEach(layerId => {
           if (map.getLayer(layerId)) { map.setLayoutProperty(layerId, 'visibility', 'none'); }
       });
       
       // Capas que deben estar visibles al iniciar
-      const initialVisibleLayers = ['trazo1', 'trazo2', 'comind', 'comind-halo', 'comind-pulse', 'nucleosa'];
+      const initialVisibleLayers = ['trazoa', 'vianterior', 'comind', 'comind-halo', 'comind-pulse', 'nucleosa'];
       initialVisibleLayers.forEach(layerId => {
           if (map.getLayer(layerId)) { map.setLayoutProperty(layerId, 'visibility', 'visible'); }
       });
