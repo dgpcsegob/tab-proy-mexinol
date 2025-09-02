@@ -5,13 +5,17 @@ import './App.css';
 
 const App: React.FC = () => {
   const [layersVisibility, setLayersVisibility] = useState<Record<string, boolean>>({
-    puntos_zona1: true,
-    puntos_zona2: true,
+    trazo1: true,
+    trazo2: true,
+    comind: true,
+    nucleosa: true,
+    puntos_zona1: false,
+    puntos_zona2: false,
     mesas_cercanas_zona1: false,
     mesas_cercanas_zona2: false,
     regiones_zona1: false,
     regiones_zona2: false,
-    LocalidadesSedeINPI: true,
+    LocalidadesSedeINPI: false,
     PresidenciasMunicipales: false,
     PuntosWiFiCFE_4G: false,
     PuntosWiFiCFE_FIBRA: false,
@@ -27,19 +31,20 @@ const App: React.FC = () => {
 
   const sections: InfoBoxSection[] = [
     {
-      title: 'Zona 1',
+      title: 'Capas del Proyecto',
       items: [
-        { id: 'puntos_zona1', label: 'Asambleas Regionales Zona 1', color: '#e60026', shape: 'circle', switch: true, checked: layersVisibility['puntos_zona1'] },
-        { id: 'mesas_cercanas_zona1', label: 'Mesas de Paz Zona 1', color: '#f8e71c', shape: 'square', switch: true, checked: layersVisibility['mesas_cercanas_zona1'] },
-        { id: 'regiones_zona1', label: 'Regiones Zona 1', color: '#66c2a5', shape: 'square', switch: true, checked: layersVisibility['regiones_zona1'] },
-      ],
+        { id: 'trazo1', label: 'Trazo 1', color: '#1551c0ff', shape: 'square', switch: true, checked: layersVisibility['trazo1'] },
+        { id: 'trazo2', label: 'Trazo 2', color: '#e68021ff', shape: 'square', switch: true, checked: layersVisibility['trazo2'] },
+        { id: 'comind', label: 'Comunidades Indígenas', color: '#1e5b4f', shape: 'circle', switch: true, checked: layersVisibility['comind'] },
+        { id: 'nucleosa', label: 'Núcleos Agrarios', color: '#f5f117ff', shape: 'square', switch: true, checked: layersVisibility['nucleosa'] },
+        ]
     },
     {
-      title: 'Zona 2',
+      title: 'Asambleas Regionales',
       items: [
-        { id: 'puntos_zona2', label: 'Asambleas Regionales Zona 2', color: '#e60026', shape: 'circle', switch: true, checked: layersVisibility['puntos_zona2'] },
-        { id: 'mesas_cercanas_zona2', label: 'Mesas de Paz Zona 2', color: '#f8e71c', shape: 'square', switch: true, checked: layersVisibility['mesas_cercanas_zona2'] },
-        { id: 'regiones_zona2', label: 'Regiones Zona 2', color: '#fc8d62', shape: 'square', switch: true, checked: layersVisibility['regiones_zona2'] },
+        { id: 'puntos_zona1', label: 'Zona 1', color: '#e60026', shape: 'circle', switch: true, checked: layersVisibility['puntos_zona1'] },
+        { id: 'puntos_zona2', label: 'Zona 2', color: '#e60026', shape: 'circle', switch: true, checked: layersVisibility['puntos_zona2'] },
+        // { id: 'regiones_zona1', label: 'Regiones', color: '#66c2a5', shape: 'square', switch: true, checked: layersVisibility['regiones_zona1'] },
       ],
     },
     {
@@ -67,8 +72,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <InfoBox
-        title="Mapa de Asambleas Regionales de Consulta"
-        subtitle="Capas disponibles por zona"
+        title="TREN MÉXICO-QUERÉTARO"
         sections={sections}
         onToggle={handleToggle}
       />
