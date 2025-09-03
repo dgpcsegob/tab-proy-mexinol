@@ -160,7 +160,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const props = (e.features[0] as any).properties;
       if (props) {
-        popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Comunidad:</strong> ${props.NOM_COM}<br/>`).addTo(map);
+        popup.setLngLat(e.lngLat).setHTML(`<strong>Programa:</strong> ${props.PROGRAMA}<br/><strong>Municipio:</strong> ${props.MUNICIPIO}<br/><strong>Núcleo:</strong> ${props.NOM_NUC}`).addTo(map);
       }
     };
     map.on('mouseenter', 'nucleosa', nucleosaPopup);
@@ -170,7 +170,8 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const props = (e.features[0] as any).properties;
       if (props) {
-        popup.setLngLat(e.lngLat).setHTML(`<strong>Programa:</strong> ${props.PROGRAMA}<br/><strong>Municipio:</strong> ${props.MUNICIPIO}<br/><strong>Núcleo:</strong> ${props.NOM_NUC}`).addTo(map);
+        popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Comunidad:</strong> ${props.NOM_COM}<br/>`).addTo(map);
+  
       }
     };
     map.on('mouseenter', 'comind', comindPopup);
