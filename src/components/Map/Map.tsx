@@ -155,69 +155,27 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     const popup = popupRef.current;
     
     const checkMeasurement = () => isMeasuringRef.current || isMeasuringLineRef.current;
-    // const zonas = ['zona1', 'zona2'];
-    // zonas.forEach(zona => {
-    //   map.on('mouseenter', `puntos_${zona}`, (e) => {
-    //     if (checkMeasurement() || !e.features || e.features.length === 0) return;
-    //     map.getCanvas().style.cursor = 'pointer';
-    //     const props = (e.features[0] as any).properties;
-    //     if (props) {
-    //         popup.setLngLat((e as any).lngLat).setHTML(`<strong>Sede:</strong> ${props.Sede || 'N/A'}<br/><strong>Pueblo:</strong> ${props.Pueblo || 'N/A'}`).addTo(map);
-    //     }
-    //   });
-    //   map.on('mouseleave', `puntos_${zona}`, () => {
-    //     if (checkMeasurement()) return;
-    //     map.getCanvas().style.cursor = '';
-    //     popup.remove();
-    //   });
-    // });
-    // zonas.forEach(zona => {
-    //   map.on('mouseenter', `mesas_cercanas_${zona}`, (e) => {
-    //     if (checkMeasurement() || !e.features || e.features.length === 0) return;
-    //     map.getCanvas().style.cursor = 'pointer';
-    //     const props = (e.features[0] as any).properties;
-    //     if(props) {
-    //         const tooltipHtml = `<div style="text-align: left;"><strong>Mesa de Paz</strong><br/><strong>Entidad:</strong> ${props.Entidad || 'N/A'}<br/><strong>Región:</strong> ${props.Region || 'N/A'}<br/><strong>Nombre:</strong> ${props.NomRegion || 'N/A'}</div>`;
-    //         popup.setLngLat((e as any).lngLat).setHTML(tooltipHtml).addTo(map);
-    //     }
-    //   });
-    //   map.on('mouseleave', `mesas_cercanas_${zona}`, () => {
-    //     if (checkMeasurement()) return;
-    //     map.getCanvas().style.cursor = '';
-    //     popup.remove();
-    //   });
-    // });
-
-    // const comindPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-    //   if (checkMeasurement() || !e.features || e.features.length === 0) return;
-    //   const props = (e.features[0] as any).properties;
-    //   if (props) {
-    //     popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOMENT}<br/><strong>Municipio:</strong> ${props.NOMMUN}<br/><strong>Localidad:</strong> ${props.NOMLOC}`).addTo(map);
-    //   }
-    // };
-    // map.on('mouseenter', 'comind', comindPopup);
-    // map.on('mouseleave', 'comind', () => { if (!checkMeasurement()) popup.remove(); });
-
+   
     const nucleosaPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
+      if (checkMeasurement() || !e.features || e.features.length === 0) return;
+      const props = (e.features[0] as any).properties;
+      if (props) {
+        popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Comunidad:</strong> ${props.NOM_COM}<br/>`).addTo(map);
+      }
+    };
+    map.on('mouseenter', 'nucleosa', nucleosaPopup);
+    map.on('mouseleave', 'nucleosa', () => { if (!checkMeasurement()) popup.remove(); });
+
+    const comindPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const props = (e.features[0] as any).properties;
       if (props) {
         popup.setLngLat(e.lngLat).setHTML(`<strong>Programa:</strong> ${props.PROGRAMA}<br/><strong>Municipio:</strong> ${props.MUNICIPIO}<br/><strong>Núcleo:</strong> ${props.NOM_NUC}`).addTo(map);
       }
     };
-    map.on('mouseenter', 'nucleosa', nucleosaPopup);
-    map.on('mouseleave', 'nucleosa', () => { if (!checkMeasurement()) popup.remove(); });
+    map.on('mouseenter', 'comind', comindPopup);
+    map.on('mouseleave', 'comind', () => { if (!checkMeasurement()) popup.remove(); });
 
-    // const presidenciasMunicipalesPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-    //   if (checkMeasurement() || !e.features || e.features.length === 0) return;
-    //   const props = (e.features[0] as any).properties;
-    //   if (props) {
-    //     popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.entidad}<br/><strong>Municipio:</strong> ${props.municipio}<br/><strong>Dirección:</strong> ${props.direccion}`).addTo(map);
-    //   }
-    // };
-    // map.on('mouseenter', 'PresidenciasMunicipales', presidenciasMunicipalesPopup);
-    // map.on('mouseleave', 'PresidenciasMunicipales', () => { if (!checkMeasurement()) popup.remove(); });
-    
     const localidadesSedeINPIPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const props = (e.features[0] as any).properties;
@@ -227,19 +185,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     };
     map.on('mouseenter', 'LocalidadesSedeINPI', localidadesSedeINPIPopup);
     map.on('mouseleave', 'LocalidadesSedeINPI', () => { if (!checkMeasurement()) popup.remove(); });
-    
-    // const tecnologias = ['PuntosWiFiCFE_4G', 'PuntosWiFiCFE_FIBRA', 'PuntosWiFiCFE_SATELITAL'];
-    // tecnologias.forEach(id => {
-    //   map.on('mouseenter', id, (e) => {
-    //     if (checkMeasurement() || !e.features || e.features.length === 0) return;
-    //     const props = (e.features[0] as any).properties;
-    //     if (props) {
-    //         popup.setLngLat((e as any).lngLat).setHTML(`<strong>Nombre:</strong> ${props['INMUEBLE NOMBRE']}<br/><strong>Tecnología:</strong> ${props['TECNOLOGIA']}`).addTo(map);
-    //     }
-    //   });
-    //   map.on('mouseleave', id, () => { if (!checkMeasurement()) popup.remove(); });
-    // });
-  }, []);
+   }, []);
 
   const addRouteToMap = useCallback(async (points: LngLatLike[]) => {
     const map = mapRef.current;
@@ -318,28 +264,6 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
   }, [clearCurrentPoints, drawSingleLineOnMap]);
 
   const addVectorLayers = (map: maplibregl.Map) => {
-    // const zonas = ['zona1', 'zona2'];
-    // zonas.forEach(zona => {
-    //   if (!map.getSource(`puntos_${zona}`)) {
-    //     map.addSource(`puntos_${zona}`, { type: 'vector', url: `pmtiles://data/puntos_${zona}.pmtiles` });
-    //   }
-    //   if (!map.getLayer(`puntos_${zona}`)) {
-    //     map.addLayer({
-    //       id: `puntos_${zona}`, type: 'circle', source: `puntos_${zona}`, 'source-layer': `puntos_${zona}_tile`,
-    //       paint: { 'circle-radius': 5.5, 'circle-color': '#e60026', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 }
-    //     });
-    //   }
-    //   if (!map.getSource(`mesas_cercanas_${zona}`)) {
-    //     map.addSource(`mesas_cercanas_${zona}`, { type: 'vector', url: `pmtiles://data/mesas_cercanas_${zona}.pmtiles` });
-    //   }
-    //   if (!map.getLayer(`mesas_cercanas_${zona}`)) {
-    //     map.addLayer({
-    //       id: `mesas_cercanas_${zona}`, type: 'fill', source: `mesas_cercanas_${zona}`, 'source-layer': `mesas_cercanas_${zona}_tile`,
-    //       paint: { 'fill-color': '#f8e71c', 'fill-opacity': 0.4, 'fill-outline-color': '#333333' }
-    //     });
-    //   }
-    // });
-    
     if (!map.getSource('LocalidadesSedeINPI')) {
       map.addSource('LocalidadesSedeINPI', { type: 'vector', url: 'pmtiles://data/inpi.pmtiles' });
     }
