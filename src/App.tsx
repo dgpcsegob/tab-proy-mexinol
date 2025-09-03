@@ -32,7 +32,7 @@ const App: React.FC = () => {
         { id: 'comind', label: 'Comunidades (area de influencia)', color: '#1e5b4f', shape: 'circle', switch: true, checked: layersVisibility['comind'] },
         { id: 'nucleosa', label: 'Núcleos Agrarios (área de influencia)', color: '#f5f117ff', shape: 'square', switch: true, checked: layersVisibility['nucleosa'] },
         { id: 'buffer10', label: 'Buffer 10m', color: '#ff7f00', shape: 'square', switch: true, checked: layersVisibility['buffer10'] },
-        { id: 'buffer20', label: 'Buffer 20m', color: '#377eb8', shape: 'square', switch: true, checked: layersVisibility['bufer20'] },
+        { id: 'buffer20', label: 'Buffer 20m', color: '#377eb8', shape: 'square', switch: true, checked: layersVisibility['buffer20'] },
         { id: 'afectaciones', label: 'Afectaciones', color: '#ff0000', shape: 'circle', switch: true, checked: layersVisibility['afectaciones'] },
         ]
     },
