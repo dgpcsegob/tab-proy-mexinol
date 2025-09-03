@@ -817,7 +817,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       addVectorLayers(map); 
 
       const allToggleableLayers = [
-          'trazoa', 'vianterior', 'buffer10', 'bufer20', 
+          'trazoa', 'vianterior', 'buffer10', 'buffer20', 
           'comind', 'comind-halo', 'comind-pulse', 'nucleosa',
           'afectaciones', 'LocalidadesSedeINPI', 
           
