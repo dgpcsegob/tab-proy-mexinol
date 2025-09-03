@@ -5,14 +5,13 @@ import './App.css';
 
 const App: React.FC = () => {
   const [layersVisibility, setLayersVisibility] = useState<Record<string, boolean>>({
-    trazoa: true,
-    vianterior: true,
-    comind: true,
-    nucleosa: true,
-    buffer10: false,
-    buffer20: false,
-    afectaciones: false,
+    acueducto: true,
+    presa: true,
     LocalidadesSedeINPI: false,
+    comind: true,
+    locvillasola: false,
+    lrvillasola: false,
+    perimetrales: false,
    
   });
 
@@ -27,19 +26,19 @@ const App: React.FC = () => {
     {
       title: 'Capas del Proyecto',
       items: [
-        { id: 'trazoa', label: 'Trazo actual', color: '#e04a4aff', shape: 'square', switch: true, checked: layersVisibility['trazoa'] },
-        { id: 'vianterior', label: 'Cartas de vía', color: '#3d3d3dff', shape: 'square', switch: true, checked: layersVisibility['vianterior'] },
-        { id: 'comind', label: 'Comunidades (area de influencia)', color: '#1e5b4f', shape: 'circle', switch: true, checked: layersVisibility['comind'] },
-        { id: 'nucleosa', label: 'Núcleos Agrarios (área de influencia)', color: '#f5f117ff', shape: 'square', switch: true, checked: layersVisibility['nucleosa'] },
-        { id: 'buffer10', label: 'Buffer 10m', color: '#ff7f00', shape: 'square', switch: true, checked: layersVisibility['buffer10'] },
-        { id: 'buffer20', label: 'Buffer 20m', color: '#377eb8', shape: 'square', switch: true, checked: layersVisibility['buffer20'] },
-        { id: 'afectaciones', label: 'Afectaciones', color: '#ff0000', shape: 'circle', switch: true, checked: layersVisibility['afectaciones'] },
+        { id: 'acueducto', label: 'Acueducto y ramales', color: '#00FFF0', shape: 'square', switch: true, checked: layersVisibility['acueducto'] },
+        { id: 'presa', label: 'Presa Margarita Maza', color: '#4c9af3ff', shape: 'square', switch: true, checked: layersVisibility['presa'] },
+        { id: 'comind', label: 'Comunidades (area de influencia)', color: '#df7649', shape: 'circle', switch: true, checked: layersVisibility['comind'] },
+        { id: 'locvillasola', label: 'Localidades Villa Sola', color: '#f3ff4dff', shape: 'square', switch: true, checked: layersVisibility['locvillasola'] },
+        { id: 'lrvillasola', label: 'Localidaades rurales', color: '#08c567ff', shape: 'circle', switch: true, checked: layersVisibility['lrvillasola'] },
+        { id: 'perimetrales', label: 'Nucleos Agrarios', color: '#21f84fff', shape: 'square', switch: true, checked: layersVisibility['perimetrales'] },
+        // { id: 'afectaciones', label: 'Afectaciones', color: '#ff0000', shape: 'circle', switch: true, checked: layersVisibility['afectaciones'] },
         ]
     },
     {
       title: 'Comunidades Indígenas y Afromexicanas',
       items: [
-        { id: 'LocalidadesSedeINPI', label: 'Pueblos Indígenas', color: '#666666', shape: 'circle', switch: true, checked: layersVisibility['LocalidadesSedeINPI'] },
+        { id: 'LocalidadesSedeINPI', label: 'Pueblos Indígenas', color: '#ec3db8ff', shape: 'circle', switch: true, checked: layersVisibility['LocalidadesSedeINPI'] },
       ],
     },
    ];
@@ -47,7 +46,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <InfoBox
-        title="TREN MÉXICO-QUERÉTARO"
+        title="PRESA MARGARITA MAZA (PASO ANCHO)"
         sections={sections}
         onToggle={handleToggle}
       />

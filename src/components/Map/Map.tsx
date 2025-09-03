@@ -156,26 +156,58 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     
     const checkMeasurement = () => isMeasuringRef.current || isMeasuringLineRef.current;
    
-    const nucleosaPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
+    const locVillaSolaPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const props = (e.features[0] as any).properties;
       if (props) {
-        popup.setLngLat(e.lngLat).setHTML(`<strong>Programa:</strong> ${props.PROGRAMA}<br/><strong>Municipio:</strong> ${props.MUNICIPIO}<br/><strong>Núcleo:</strong> ${props.NOM_NUC}`).addTo(map);
+        popup.setLngLat(e.lngLat).setHTML(`<strong>Localidad:</strong> ${props.NOMGEO}<br/><strong>Ámbito:</strong> ${props.AMBITO}`).addTo(map);
       }
     };
-    map.on('mouseenter', 'nucleosa', nucleosaPopup);
-    map.on('mouseleave', 'nucleosa', () => { if (!checkMeasurement()) popup.remove(); });
+    map.on('mouseenter', 'locvillasola', locVillaSolaPopup);
+    map.on('mouseleave', 'locvillasola', () => { if (!checkMeasurement()) popup.remove(); });
+
+    const lrVillaSolaPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
+      if (checkMeasurement() || !e.features || e.features.length === 0) return;
+      const props = (e.features[0] as any).properties;
+      if (props) {
+        popup.setLngLat(e.lngLat).setHTML(`<strong>Localidad:</strong> ${props.NOMGEO}`).addTo(map);
+      }
+    };
+    map.on('mouseenter', 'lrvillasola', lrVillaSolaPopup);
+    map.on('mouseleave', 'lrvillasola', () => { if (!checkMeasurement()) popup.remove(); });
+
+    const perimetralesPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
+      if (checkMeasurement() || !e.features || e.features.length === 0) return;
+      const props = (e.features[0] as any).properties;
+      if (props) {
+        popup.setLngLat(e.lngLat).setHTML(`<strong>Nucleo:</strong> ${props.NOM_NUC}<br/><strong>Municipio:</strong> ${props.MUNICIPIO}</br><strong>Tipo:</strong> ${props.tipo}`).addTo(map);
+      }
+    };
+    map.on('mouseenter', 'perimetrales', perimetralesPopup);
+    map.on('mouseleave', 'perimetrales', () => { if (!checkMeasurement()) popup.remove(); });
 
     const comindPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const props = (e.features[0] as any).properties;
       if (props) {
         popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Comunidad:</strong> ${props.NOM_COM}<br/>`).addTo(map);
-  
       }
     };
-    map.on('mouseenter', 'comind', comindPopup);
-    map.on('mouseleave', 'comind', () => { if (!checkMeasurement()) popup.remove(); });
+    // Eventos para comind con cursor pointer
+    map.on('click', 'comind', comindPopup);
+    // Cambiar cursor a pointer al entrar
+    map.on('mouseenter', 'comind', () => {
+      if (!checkMeasurement()) {
+        map.getCanvas().style.cursor = 'pointer';
+      }
+    });
+    // Restaurar cursor y quitar popup al salir
+    map.on('mouseleave', 'comind', () => { 
+      if (!checkMeasurement()) {
+        map.getCanvas().style.cursor = '';
+        popup.remove(); 
+      }
+    });
 
     const localidadesSedeINPIPopup = (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
@@ -184,9 +216,23 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
         popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Pueblo:</strong> ${props.Pueblo}`).addTo(map);
       }
     };
-    map.on('mouseenter', 'LocalidadesSedeINPI', localidadesSedeINPIPopup);
-    map.on('mouseleave', 'LocalidadesSedeINPI', () => { if (!checkMeasurement()) popup.remove(); });
-   }, []);
+    // Eventos para LocalidadesSedeINPI con cursor pointer
+    map.on('click', 'LocalidadesSedeINPI', localidadesSedeINPIPopup);
+    // Cambiar cursor a pointer al entrar
+    map.on('mouseenter', 'LocalidadesSedeINPI', () => {
+      if (!checkMeasurement()) {
+        map.getCanvas().style.cursor = 'pointer';
+      }
+    });
+    // Restaurar cursor y quitar popup al salir
+    map.on('mouseleave', 'LocalidadesSedeINPI', () => { 
+      if (!checkMeasurement()) {
+        map.getCanvas().style.cursor = '';
+        popup.remove(); 
+      }
+    });
+    }, 
+   []);
 
   const addRouteToMap = useCallback(async (points: LngLatLike[]) => {
     const map = mapRef.current;
@@ -279,88 +325,67 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       });
     }
 
-    if (!map.getSource('nucleosa')) {
-      map.addSource('nucleosa', { type: 'vector', url: 'pmtiles://data/10nucleos.pmtiles' });
+    if (!map.getSource('perimetrales')) {
+      map.addSource('perimetrales', { type: 'vector', url: 'pmtiles://data/perimetrales_nocert_oax.pmtiles' });
     }
-    if (!map.getLayer('nucleosa')) {
+    if (!map.getLayer('perimetrales')) {
       map.addLayer({
-        id: 'nucleosa', type: 'fill', source: 'nucleosa', 'source-layer': '10nucleos_tile',
-        paint: { 'fill-color': '#eeff00ff', 'fill-opacity': 0.9, 'fill-outline-color': '#ffffffff', 'fill-antialias': true }
+        id: 'perimetrales', type: 'fill', source: 'perimetrales', 'source-layer': 'perimetrales_nocert_oax_tile',
+        paint: { 'fill-color': '#15ff00ff', 'fill-opacity': 0.5, 'fill-outline-color': '#ffffffff' },
       });
     }
 
-    if (!map.getSource('vianterior')) {
-      map.addSource('vianterior', { type: 'vector', url: 'pmtiles://data/via_anterior.pmtiles' });
+    if (!map.getSource('lrvillasola')) {
+      map.addSource('lrvillasola', { type: 'vector', url: 'pmtiles://data/lr_villasola.pmtiles' });
     }
-    if (!map.getLayer('vianterior')) {
+    if (!map.getLayer('lrvillasola')) {
       map.addLayer({
-        id: 'vianterior', type: 'line', source: 'vianterior', 'source-layer': 'via_anterior_tile',
-        paint: { 'line-color': '#3d3d3dff', 'line-width': 1.5, 'line-opacity': 0.7 },
+        id: 'lrvillasola', type: 'circle', source: 'lrvillasola', 'source-layer': 'lr_villasola_tile',
+        paint: { 'circle-color': '#0da326ff', 'circle-radius': 8, 'circle-opacity': 0.8, 'circle-stroke-color': '#ffffffff', 'circle-stroke-width': 2}
       });
     }
 
-       if (!map.getSource('buffer10')) {
-      map.addSource('buffer10', { type: 'vector', url: 'pmtiles://data/buffer10m.pmtiles' });
+    if (!map.getSource('acueducto')) {
+      map.addSource('acueducto', { type: 'vector', url: 'pmtiles://data/acueductoyramales.pmtiles' });
     }
-    if (!map.getLayer('buffer10')) {
+    if (!map.getLayer('acueducto')) {
       map.addLayer({
-        id: 'buffer10', type: 'line', source: 'buffer10', 'source-layer': 'buffer10m_tile',
-        paint: { 'line-color': '#e04a95ff', 'line-width': 1, 'line-opacity': 1 },
+        id: 'acueducto', type: 'line', source: 'acueducto', 'source-layer': 'acueductoyramales_tile',
+        paint: { 'line-color': '#00FFF0', 'line-width': 3, 'line-opacity': 0.8 }
       });
     }
 
-    if (!map.getSource('buffer20')) {
-      map.addSource('buffer20', { type: 'vector', url: 'pmtiles://data/buffer20m.pmtiles' });
+    if (!map.getSource('locvillasola')) {
+      map.addSource('locvillasola', { type: 'vector', url: 'pmtiles://data/loc_villasola.pmtiles' });
     }
-    if (!map.getLayer('buffer20')) {
+    if (!map.getLayer('locvillasola')) {
       map.addLayer({
-        id: 'buffer20', type: 'line', source: 'buffer20', 'source-layer': 'buffer20m_tile',
-        paint: { 'line-color': '#a10d9aff', 'line-width': 1, 'line-opacity': 1 },
+        id: 'locvillasola', type: 'fill', source: 'locvillasola', 'source-layer': 'loc_villasola_tile',
+        paint: { 'fill-color': '#f0f34cff', 'fill-opacity': 0.7, 'fill-outline-color': '#ffffffff' },
       });
     }
 
-    if (!map.getSource('afectaciones')) {
-      map.addSource('afectaciones', { type: 'vector', url: 'pmtiles://data/afectacion_ddv.pmtiles' });
+   if (!map.getSource('comind')) {
+      map.addSource('comind', { type: 'vector', url: 'pmtiles://data/comunidades_inpi.pmtiles' });
     }
-    if (!map.getLayer('afectaciones')) {
-      map.addLayer({
-        id: 'afectaciones', type: 'line', source: 'afectaciones', 'source-layer': 'afectacion_ddv_tile',
-        paint: { 'line-color': '#970909ff', 'line-width': 1.5, 'line-opacity': 1 },
-      });
-    }
-
-    if (!map.getSource('trazoa')) {
-      map.addSource('trazoa', { type: 'vector', url: 'pmtiles://data/trazo_actual_nv.pmtiles' });
-    }
-    if (!map.getLayer('trazoa')) {
-      map.addLayer({
-        id: 'trazoa', type: 'line', source: 'trazoa', 'source-layer': 'trazo_actual_nv_tile',
-        paint: { 'line-color': '#e04a4aff', 'line-width': 4, 'line-opacity': 0.7 },
-      });
-    }
-    
-
-
-    if (!map.getSource('comind')) {
-      map.addSource('comind', { type: 'vector', url: 'pmtiles://data/14comunidades.pmtiles' });
-    }
+    // Agregar halo tenue para comind (capa inferior)
     if (!map.getLayer('comind-halo')) {
       map.addLayer({
-        id: 'comind-halo', type: 'circle', source: 'comind', 'source-layer': '14comunidades_tile',
+        id: 'comind-halo', type: 'circle', source: 'comind', 'source-layer': 'comunidades_inpi_tile',
         paint: { 
-          'circle-color': '#1e5b4f', 
+          'circle-color': '#df7649', 
           'circle-radius': 12, 
           'circle-opacity': 0.15,
           'circle-blur': 0.8
         }
       });
     }
-    // Capa de pulso para comind (sobre el halo, bajo el principal)
+     // Capa de pulso para comind (sobre el halo, bajo el principal)
     if (!map.getLayer('comind-pulse')) {
       map.addLayer({
-        id: 'comind-pulse', type: 'circle', source: 'comind', 'source-layer': '14comunidades_tile',
+        id: 'comind-pulse', type: 'circle', source: 'comind', 'source-layer': 'comunidades_inpi_tile',
         paint: { 
-          'circle-color': '#1e5b4f', 
+          'circle-color': '#df7649', 
           'circle-radius': 15, 
           'circle-opacity': 0.6
         }
@@ -369,38 +394,20 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     // Capa principal de comind (encima del halo y pulso)
     if (!map.getLayer('comind')) {
       map.addLayer({
-        id: 'comind', type: 'circle', source: 'comind', 'source-layer': '14comunidades_tile',
-        paint: { 'circle-color': '#1e5b4f', 'circle-radius': 8, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2.5 }
+        id: 'comind', type: 'circle', source: 'comind', 'source-layer': 'comunidades_inpi_tile',
+        paint: { 'circle-color': '#df7649', 'circle-radius': 8, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2.5 }
       });
     }
 
-    // if (!map.getSource('PresidenciasMunicipales')) {
-    //   map.addSource('PresidenciasMunicipales', { type: 'vector', url: 'pmtiles://data/PresidenciasMunicipales.pmtiles' });
-    // }
-    // if (!map.getLayer('PresidenciasMunicipales')) {
-    //   map.addLayer({
-    //     id: 'PresidenciasMunicipales', type: 'circle', source: 'PresidenciasMunicipales', 'source-layer': 'PresidenciasMunicipales_tile',
-    //     paint: { 'circle-radius': 4, 'circle-color': '#000000' }
-    //   });
-    // }
-    
-    // if (!map.getSource('PuntosWiFiCFE')) {
-    //   map.addSource('PuntosWiFiCFE', { type: 'vector', url: 'pmtiles://data/PuntosWiFiCFE.pmtiles' });
-    // }
-    // const tecnologias = [
-    //   { id: 'PuntosWiFiCFE_4G', color: '#9f2241', filtro: '4G' },
-    //   { id: 'PuntosWiFiCFE_FIBRA', color: '#cda578', filtro: 'FIBRA O COBRE' },
-    //   { id: 'PuntosWiFiCFE_SATELITAL', color: '#235b4e', filtro: 'SATELITAL' },
-    // ];
-    // tecnologias.forEach(({ id, color, filtro }) => {
-    //   if (!map.getLayer(id)) {
-    //     map.addLayer({
-    //       id, type: 'circle', source: 'PuntosWiFiCFE', 'source-layer': 'PuntosWiFiCFE_tile',
-    //       filter: ['==', ['get', 'TECNOLOGIA'], filtro],
-    //       paint: { 'circle-radius': 2, 'circle-color': color, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 0 }
-    //     });
-    //   }
-    // });
+     if (!map.getSource('presa')) {
+      map.addSource('presa', { type: 'vector', url: 'pmtiles://data/presamargarita.pmtiles' });
+    }
+    if (!map.getLayer('presa')) {
+      map.addLayer({
+        id: 'presa', type: 'fill', source: 'presa', 'source-layer': 'presamargarita_tile',
+        paint: { 'fill-color': '#4c9af3ff', 'fill-opacity': 0.8, 'fill-outline-color': '#ffffffff' },
+      });
+    }
   };
 
   const updateLayerVisibility = useCallback((map: maplibregl.Map) => {
@@ -422,6 +429,39 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       } catch {}
     });
   }, [layersVisibility]);
+
+  // Función animateTerrainExaggeration para crear efecto de realce gradual
+  const animateTerrainExaggeration = useCallback((map: any, targetExaggeration: number, duration: number = 2000) => {
+    const startTime = Date.now();
+    const startExaggeration = 0;
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function para suavizar la animación
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      
+      const currentExaggeration = startExaggeration + (targetExaggeration - startExaggeration) * easeOutQuart;
+      
+      try {
+        if (map.getTerrain()) {
+          map.setTerrain({ 
+            source: 'terrain-rgb', 
+            exaggeration: currentExaggeration
+          });
+        }
+      } catch (error) {
+        console.warn('Error animating terrain exaggeration:', error);
+      }
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, []);
 
   // Función toggle3D corregida para funcionar como switch
   const toggle3D = () => {
@@ -557,10 +597,14 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
         const targetPitch = isSatelliteActive ? 60 : 70;
         const sunIntensity = isSatelliteActive ? 3 : 5;
 
+        // Iniciar con terreno sin exageración y animarlo
         map.setTerrain({ 
           source: 'terrain-rgb', 
-          exaggeration: exaggeration
+          exaggeration: 0.1 // Empezar con valor mínimo
         });
+        
+        // Animar la exageración del terreno
+        animateTerrainExaggeration(map, exaggeration, 2500);
         
         if (!map.getLayer('sky')) {
           map.addLayer({
@@ -655,7 +699,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     const currentCenter = map.getCenter();
     const currentZoom = map.getZoom();
     const currentBearing = map.getBearing();
-    const currentPitch = map.getPitch();
+    const currentPitch = map.getPitch(); // GUARDAR EL PITCH ACTUAL
     const was3D = is3D;
     const newIsSatellite = !isSatellite;
 
@@ -707,15 +751,15 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       };
       animateComindPulse(0);
 
-      // Restaurar posición sin pitch aún
+      // ✅ CORRECCIÓN: Restaurar posición CON EL PITCH ORIGINAL
       map.jumpTo({
         center: currentCenter,
         zoom: currentZoom,
         bearing: currentBearing,
-        pitch: 0 // Empezamos plano
+        pitch: was3D ? currentPitch : 0 // Mantener pitch si estaba en 3D, sino 0
       });
 
-      // === REAPLICAR EFECTOS 3D + PITCH SI ESTABA EN MODO 3D ===
+      // === REAPLICAR EFECTOS 3D SIN PITCH ANIMATION SI YA ESTABA EN 3D ===
       if (was3D) {
         // Asegurar fuente de terreno
         if (!map.getSource('terrain-rgb')) {
@@ -728,9 +772,13 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
 
         const exaggeration = newIsSatellite ? 1.2 : 1.5;
         const sunIntensity = newIsSatellite ? 3 : 5;
-        const targetPitch = newIsSatellite ? 60 : 70;
 
-        map.setTerrain({ source: 'terrain-rgb', exaggeration });
+        // Aplicar terreno con animación de exageración
+        setTimeout(() => {
+          map.setTerrain({ source: 'terrain-rgb', exaggeration: 0.1 });
+          animateTerrainExaggeration(map, exaggeration, 1500);
+        }, 100);
+
         if (!map.getLayer('sky')) {
           map.addLayer({
             id: 'sky',
@@ -743,17 +791,8 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
           } as any);
         }
 
-        // ✅ ANIMAR EL PITCH DESPUÉS DE CARGAR EL ESTILO
-        setTimeout(() => {
-          if (map.getPitch() < 5) {
-            map.easeTo({
-              pitch: targetPitch,
-              bearing: currentBearing,
-              duration: 1500,
-              easing: (t: number) => t * (2 - t) // easeInOutQuad
-            });
-          }
-        }, 200);
+        // ✅ NO HACER PITCH ANIMATION SI YA ESTABA EN 3D
+        // (El pitch ya se restauró arriba)
       }
     });
   };
@@ -793,10 +832,10 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     const map = new maplibregl.Map({
       container, 
       style: baseStyleUrl,
-      center: [-99.68121, 20.05936], 
-      zoom: 8.5,
-      pitch: 0, // Asegurar que inicie completamente plano
-      bearing: 0, // Norte arriba
+      center: [-96.72966, 16.76375], 
+      zoom: 9.65,
+      pitch: 0, 
+      bearing: 0, 
       attributionControl: false, 
       maxBounds: mexicoBounds,
       maxPitch: 85
@@ -817,9 +856,8 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       addVectorLayers(map); 
 
       const allToggleableLayers = [
-          'trazoa', 'vianterior', 'buffer10', 'buffer20', 
-          'comind', 'comind-halo', 'comind-pulse', 'nucleosa',
-          'afectaciones', 'LocalidadesSedeINPI', 
+          'acueducto', 'presa', 'LocalidadesSedeINPI', 'comind',
+          'perimetrales', 'lrvillasola', 'locvillasola', 'comind-halo', 'comind-pulse'
           
       ];
       allToggleableLayers.forEach(layerId => {
@@ -827,7 +865,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       });
       
       // Capas que deben estar visibles al iniciar
-      const initialVisibleLayers = ['trazoa', 'vianterior', 'comind', 'comind-halo', 'comind-pulse', 'nucleosa'];
+      const initialVisibleLayers = ['acueducto', 'presa', 'comind', 'comind-halo', 'comind-pulse'];
       initialVisibleLayers.forEach(layerId => {
           if (map.getLayer(layerId)) { map.setLayoutProperty(layerId, 'visibility', 'visible'); }
       });
@@ -961,7 +999,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       if (minimapRef.current) { minimapRef.current.remove(); minimapRef.current = null; }
       maplibregl.removeProtocol('pmtiles');
     };
-  }, [apiKey, attachAllTooltipEvents, drawSingleRouteOnMap, animateCompass]);
+  }, [apiKey, attachAllTooltipEvents, drawSingleRouteOnMap, animateCompass, animateTerrainExaggeration]);
 
   useEffect(() => {
     const map = mapRef.current;

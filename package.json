@@ -1,8 +1,8 @@
 {
-  "name": "tab-tren-cmdx-qro",
+  "name": "tab-paso-ancho",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://baruschs.github.io/tab-tren-cdmx-qro",
+  "homepage": "https://baruschs.github.io/tab-paso-ancho/",
   "dependencies": {
     "@aesqe/mapboxgl-minimap": "^1.0.0",
     "@mapbox-controls/ruler": "^3.0.0",
