@@ -7,8 +7,8 @@ type LegendItem = {
   color?: string;
   shape?: 'circle' | 'square';
   size?: number;
-  switch?: boolean;   // si lleva switch
-  checked?: boolean;  // estado desde el padre
+  switch?: boolean;   
+  checked?: boolean;  
 };
 
 export type InfoBoxSection = {
@@ -24,7 +24,7 @@ type InfoBoxProps = {
   initialOpen?: boolean;
 };
 
-/** Toggle “gooey” (Uiverse) convertido a componente controlado */
+/*== Toggle “gooey” (Uiverse) convertido a componente controlado ==*/
 const GooToggle: React.FC<{
   checked: boolean;
   onChange: () => void;
@@ -78,7 +78,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 
   return (
     <>
-      {/* Botón flotante cuando el panel está oculto */}
+      {/*== Botón flotante cuando el panel está oculto ==*/}
       {!open && (
         <button
           className="floating-reveal-btn blink"
@@ -86,7 +86,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           aria-label="Mostrar panel"
           title="Mostrar panel"
         >
-          {/* Chevron hacia la izquierda (entra desde la izquierda) */}
+          {/*== Chevron hacia la izquierda (entra desde la izquierda) ==*/}
           <span className="chev right" />
         </button>
       )}
@@ -98,14 +98,14 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             {subtitle && <p className="info-subtitle">{subtitle}</p>}
           </div>
 
-          {/* Botón para ocultar (empuja a la derecha) */}
+          {/*== Botón para ocultar (empuja a la derecha) ==*/}
           <button
             className="side-toggle"
             onClick={() => setOpen(false)}
             aria-label="Ocultar panel"
             title="Ocultar panel"
           >
-            {/* Chevron hacia la derecha */}
+            {/*== Chevron hacia la derecha ==*/}
             <span className="chev left" />
           </button>
         </header>

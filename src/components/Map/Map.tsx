@@ -18,12 +18,14 @@ interface RouteData {
   duration: string;
 }
 
+/*== Icono 3D dinámico ==*/
 const get3DIcon = (isOn: boolean) => {
   const color = isOn ? '#007cbf' : '#6c757d';
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
+/*== Crear el componente Map ==*/
 const Map: React.FC<MapProps> = ({ layersVisibility }) => {
   const mapRef = useRef<MaplibreMap | null>(null);
   const minimapRef = useRef<MaplibreMap | null>(null);
@@ -39,12 +41,14 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
   const displayBearingRef = useRef(0);
   const compassAnimId = useRef<number | null>(null);
 
+  /*== Obtiene mapas ==*/
   const apiKey = 'QAha5pFBxf4hGa8Jk5zv';
   const baseStyleUrl = 'https://www.mapabase.atdt.gob.mx/style.json'; // Mapa gubernamental 2D
   const base3DStyleUrl = `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey}`; // Mapa outdoor 3D
   const satelliteStyleUrl = `https://api.maptiler.com/maps/satellite/style.json?key=${apiKey}`;
   const minimapStyleUrl = `https://api.maptiler.com/maps/dataviz-light/style.json?key=${apiKey}`;
 
+  /*== Estados del mapa ==*/
   const [isSatellite, setIsSatellite] = useState(false);
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [isMeasuringLine, setIsMeasuringLine] = useState(false);
@@ -71,6 +75,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     sources.forEach(id => { if (map.getSource(id)) map.removeSource(id); });
   }, []);
 
+/*== Dibuja una ruta en el mapa ==*/
   const drawSingleRouteOnMap = useCallback((map: MaplibreMap, route: RouteData) => {
     const { id, startPoint, endPoint, geometry } = route;
     if (map.getSource(`route-source-${id}`)) return;
@@ -92,11 +97,12 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     });
   }, []);
 
+  /*== Dibuja una línea recta en el mapa ==*/
   const drawSingleLineOnMap = useCallback((map: MaplibreMap, line: RouteData) => {
     const { id, startPoint, endPoint } = line;
     if (map.getSource(`line-source-${id}`)) return;
     
-    // Crear geometría de línea recta
+    /*== Crear geometría de línea recta ==*/
     const lineGeometry = {
       type: 'LineString' as const,
       coordinates: [[startPoint.lng, startPoint.lat], [endPoint.lng, endPoint.lat]]
@@ -120,11 +126,12 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     });
   }, []);
 
+  /*== Limpia todas las rutas y líneas del mapa ==*/
   const clearAllRoutes = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
     
-    // Limpiar rutas
+    /*== Limpiar rutas ==*/
     routesData.forEach(route => {
       const { id } = route;
       if (map.getLayer(`route-layer-${id}`)) map.removeLayer(`route-layer-${id}`);
@@ -135,7 +142,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       if (map.getSource(`end-point-${id}`)) map.removeSource(`end-point-${id}`);
     });
     
-    // Limpiar líneas
+    /*== Limpiar líneas ==*/
     linesData.forEach(line => {
       const { id } = line;
       if (map.getLayer(`line-layer-${id}`)) map.removeLayer(`line-layer-${id}`);
@@ -151,6 +158,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     clearCurrentPoints();
   }, [routesData, linesData, clearCurrentPoints]);
   
+  /*== Adjunta eventos de tooltip a las capas relevantes ==*/
   const attachAllTooltipEvents = useCallback((map: MaplibreMap) => {
     const popup = popupRef.current;
     
@@ -193,15 +201,15 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
         popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Comunidad:</strong> ${props.NOM_COM}<br/>`).addTo(map);
       }
     };
-    // Eventos para comind con cursor pointer
+    /*== Eventos para comind con cursor pointer ==*/
     map.on('click', 'comind', comindPopup);
-    // Cambiar cursor a pointer al entrar
+    /*== Cambiar cursor a pointer al entrar ==*/
     map.on('mouseenter', 'comind', () => {
       if (!checkMeasurement()) {
         map.getCanvas().style.cursor = 'pointer';
       }
     });
-    // Restaurar cursor y quitar popup al salir
+    /*== Restaurar cursor y quitar popup al salir ==*/
     map.on('mouseleave', 'comind', () => { 
       if (!checkMeasurement()) {
         map.getCanvas().style.cursor = '';
@@ -216,15 +224,15 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
         popup.setLngLat(e.lngLat).setHTML(`<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Pueblo:</strong> ${props.Pueblo}`).addTo(map);
       }
     };
-    // Eventos para LocalidadesSedeINPI con cursor pointer
+    /*== Eventos para LocalidadesSedeINPI con cursor pointer ==*/
     map.on('click', 'LocalidadesSedeINPI', localidadesSedeINPIPopup);
-    // Cambiar cursor a pointer al entrar
+    /*== Cambiar cursor a pointer al entrar ==*/
     map.on('mouseenter', 'LocalidadesSedeINPI', () => {
       if (!checkMeasurement()) {
         map.getCanvas().style.cursor = 'pointer';
       }
     });
-    // Restaurar cursor y quitar popup al salir
+    /*== Restaurar cursor y quitar popup al salir ==*/
     map.on('mouseleave', 'LocalidadesSedeINPI', () => { 
       if (!checkMeasurement()) {
         map.getCanvas().style.cursor = '';
@@ -277,7 +285,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     
     const [startPoint, endPoint] = points.map(p => LngLat.convert(p));
     
-    // Calcular distancia en línea recta usando fórmula de Haversine
+    /*== Calcular distancia en línea recta usando fórmula de Haversine ==*/
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
       const R = 6371; // Radio de la Tierra en km
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -288,7 +296,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
     };
-    
+    /*== Fin cálculo de distancia ==*/
     const distanceKm = calculateDistance(startPoint.lat, startPoint.lng, endPoint.lat, endPoint.lng);
     const distance = distanceKm.toFixed(2);
     
@@ -310,6 +318,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     setCurrentLinePoints([]);
   }, [clearCurrentPoints, drawSingleLineOnMap]);
 
+  /*== Añade capas vectoriales desde PMTiles ==*/
   const addVectorLayers = (map: maplibregl.Map) => {
     if (!map.getSource('LocalidadesSedeINPI')) {
       map.addSource('LocalidadesSedeINPI', { type: 'vector', url: 'pmtiles://data/inpi.pmtiles' });
@@ -709,7 +718,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
 
     setIsSatellite(newIsSatellite);
 
-    // === ELECCIÓN DE ESTILO CORREGIDA ===
+    /*== Elección del estilo ==*/
     let newStyleUrl: string;
     if (was3D) {
       newStyleUrl = newIsSatellite ? satelliteStyleUrl : base3DStyleUrl;
@@ -751,7 +760,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       };
       animateComindPulse(0);
 
-      // ✅ CORRECCIÓN: Restaurar posición CON EL PITCH ORIGINAL
+      // Restaurar posición con el pitch original
       map.jumpTo({
         center: currentCenter,
         zoom: currentZoom,
@@ -759,7 +768,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
         pitch: was3D ? currentPitch : 0 // Mantener pitch si estaba en 3D, sino 0
       });
 
-      // === REAPLICAR EFECTOS 3D SIN PITCH ANIMATION SI YA ESTABA EN 3D ===
+      /*== REAPLICAR EFECTOS 3D SIN PITCH ANIMATION SI YA ESTABA EN 3D ==*/
       if (was3D) {
         // Asegurar fuente de terreno
         if (!map.getSource('terrain-rgb')) {
@@ -790,14 +799,11 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
             }
           } as any);
         }
-
-        // ✅ NO HACER PITCH ANIMATION SI YA ESTABA EN 3D
-        // (El pitch ya se restauró arriba)
       }
     });
   };
 
-  // === Animación continua de la brújula (interpolación suave hacia el bearing del mapa) ===
+  /*== Animación continua de la brújula (interpolación suave hacia el bearing del mapa) ==*/
   const animateCompass = useCallback(() => {
     const map = mapRef.current;
     if (!map) {
@@ -845,13 +851,10 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     map.on('load', () => {
       map.addControl(new maplibregl.AttributionControl({ customAttribution: 'Secretaría de Gobernación', compact: true }), 'bottom-right');
       
-      // El mapa gubernamental inicia siempre plano (no tiene efectos de terreno por defecto)
+      // El mapa base inicia siempre plano (no tiene efectos de terreno por defecto)
       if (map.getPitch() > 0) {
         map.setPitch(0);
       }
-      
-      // Agregar fuente de terreno RGB de MapTiler para uso futuro con 3D
-      // (Se agregará solo cuando se cambie al estilo outdoor 3D)
       
       addVectorLayers(map); 
 
@@ -936,6 +939,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       }
       animateComindPulse(0);
       
+      /*== Configurar minimapa ===*/
       const minimap = new maplibregl.Map({
         container: minimapContainerRef.current as HTMLDivElement,
         style: minimapStyleUrl, 
@@ -984,7 +988,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
 
       attachAllTooltipEvents(map);
 
-      // === Iniciar animación de brújula ===
+      /*== Iniciar animación de brújula ==*/
       if (!compassAnimId.current) {
         compassAnimId.current = requestAnimationFrame(animateCompass);
       }
@@ -1071,7 +1075,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
     };
   }, [isMeasuring, isMeasuringLine, currentPoints, currentLinePoints, addRouteToMap, addLineToMap]);
 
-  // === Estilos inline mínimos para asegurar botones visibles sin dependencia externa ===
+  /*== Estilos inline mínimos para asegurar botones visibles sin dependencia externa ==*/
   const controlStackStyle: React.CSSProperties = { position: 'absolute', top: '20px', right: '20px', zIndex: 20, display: 'flex', flexDirection: 'column', gap: '10px' };
   const controlButtonStyle: React.CSSProperties = { width: 40, height: 40, borderRadius: 9999, background: '#ffffff', border: '1px solid #e5e7eb', padding: 6, boxShadow: '0 6px 16px rgba(0,0,0,0.08)', cursor: 'pointer' };
   const buttonIconStyle: React.CSSProperties = { width: 24, height: 24, display: 'block' };
@@ -1079,6 +1083,38 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+
+      {/* Logo institucional - AGREGAR AQUÍ */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 25,
+        background: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: 12,
+        padding: '2px 2px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        width: 200,
+        height: 60,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <img 
+          src={`${process.env.PUBLIC_URL}/logo_SEGOB.png`} 
+          alt="SEGOB"
+          style={{
+            maxWidth: '100%',
+            maxHeight: '100%',
+            objectFit: 'contain'
+          }}
+        />
+      </div>
+
+
+
+
 
       <div className="custom-popup-container">
         {routesData.map(route => {
@@ -1182,7 +1218,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
           <img src={get3DIcon(is3D)} alt="Vista 3D" className="button-icon" style={buttonIconStyle}/>
         </button>
 
-        {/* === Brújula interactiva (reemplaza botón de "Restaurar norte") === */}
+        {/*== Brújula interactiva (reemplaza botón de "Restaurar norte")== */}
         <button
           className="map-control-button compass-btn"
           onClick={resetNorth}

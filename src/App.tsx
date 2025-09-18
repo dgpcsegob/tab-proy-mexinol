@@ -14,7 +14,7 @@ const App: React.FC = () => {
     perimetrales: false,
    
   });
-
+/*== Manejar el toggle de visibilidad de capas ===*/
   const handleToggle = (id: string) => {
     setLayersVisibility(prev => ({
       ...prev,
