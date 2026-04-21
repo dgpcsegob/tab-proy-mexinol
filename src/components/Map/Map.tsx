@@ -296,6 +296,82 @@ const addVectorLayers = (map: maplibregl.Map) => {
       },
     });
   }
+  /*== Pin estático: punto a 21 km desde extremo sur ==*/
+  if (!map.getSource("pin21km")) {
+    map.addSource("pin21km", {
+      type: "vector",
+      url: "pmtiles://data/pin_21km.pmtiles",
+    });
+  }
+  /*== Halo exterior del pin ==*/
+  if (!map.getLayer("pin21km-halo")) {
+    map.addLayer({
+      id: "pin21km-halo",
+      type: "circle",
+      source: "pin21km",
+      "source-layer": "pin_21km",
+      paint: {
+        "circle-radius": 18,
+        "circle-color": "#691C32",
+        "circle-opacity": 0.18,
+        "circle-blur": 0.6,
+      },
+    });
+  }
+  /*== Anillo exterior del pin ==*/
+  if (!map.getLayer("pin21km-ring")) {
+    map.addLayer({
+      id: "pin21km-ring",
+      type: "circle",
+      source: "pin21km",
+      "source-layer": "pin_21km",
+      paint: {
+        "circle-radius": 11,
+        "circle-color": "#ffffff",
+        "circle-opacity": 1,
+        "circle-stroke-color": "#691C32",
+        "circle-stroke-width": 2.5,
+      },
+    });
+  }
+  /*== Núcleo del pin ==*/
+  if (!map.getLayer("pin21km")) {
+    map.addLayer({
+      id: "pin21km",
+      type: "circle",
+      source: "pin21km",
+      "source-layer": "pin_21km",
+      paint: {
+        "circle-radius": 6,
+        "circle-color": "#691C32",
+        "circle-opacity": 1,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 1.5,
+      },
+    });
+  }
+  /*== Etiqueta de km del pin ==*/
+  if (!map.getLayer("pin21km-label")) {
+    map.addLayer({
+      id: "pin21km-label",
+      type: "symbol",
+      source: "pin21km",
+      "source-layer": "pin_21km",
+      layout: {
+        "text-field": ["concat", ["to-string", ["get", "km"]], " km"],
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+        "text-size": 11,
+        "text-anchor": "left",
+        "text-offset": [1.4, 0],
+        "text-allow-overlap": true,
+      },
+      paint: {
+        "text-color": "#691C32",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2,
+      },
+    });
+  }
 };
 
 /*== Crear el componente Map ==*/
@@ -582,6 +658,11 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       "loc",
       (p) =>
         `<div style="border-left:4px solid #ff2fd2;padding-left:8px;margin:0"><strong>Localidad:</strong> ${p.NOMGEO}</div>`,
+    );
+    addHoverTooltip(
+      "pin21km",
+      (p) =>
+        `<div style="border-left:4px solid #691C32;padding-left:8px;margin:0"><strong>${p.km} km</strong><br/>${p.desc}</div>`,
     );
 
     const comindPopup = (
