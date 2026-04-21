@@ -296,82 +296,6 @@ const addVectorLayers = (map: maplibregl.Map) => {
       },
     });
   }
-  /*== Pin estático: punto a 21 km desde extremo sur ==*/
-  if (!map.getSource("pin21km")) {
-    map.addSource("pin21km", {
-      type: "vector",
-      url: "pmtiles://data/pin_21km.pmtiles",
-    });
-  }
-  /*== Halo exterior del pin ==*/
-  if (!map.getLayer("pin21km-halo")) {
-    map.addLayer({
-      id: "pin21km-halo",
-      type: "circle",
-      source: "pin21km",
-      "source-layer": "pin_21km",
-      paint: {
-        "circle-radius": 18,
-        "circle-color": "#691C32",
-        "circle-opacity": 0.18,
-        "circle-blur": 0.6,
-      },
-    });
-  }
-  /*== Anillo exterior del pin ==*/
-  if (!map.getLayer("pin21km-ring")) {
-    map.addLayer({
-      id: "pin21km-ring",
-      type: "circle",
-      source: "pin21km",
-      "source-layer": "pin_21km",
-      paint: {
-        "circle-radius": 11,
-        "circle-color": "#ffffff",
-        "circle-opacity": 1,
-        "circle-stroke-color": "#691C32",
-        "circle-stroke-width": 2.5,
-      },
-    });
-  }
-  /*== Núcleo del pin ==*/
-  if (!map.getLayer("pin21km")) {
-    map.addLayer({
-      id: "pin21km",
-      type: "circle",
-      source: "pin21km",
-      "source-layer": "pin_21km",
-      paint: {
-        "circle-radius": 6,
-        "circle-color": "#691C32",
-        "circle-opacity": 1,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 1.5,
-      },
-    });
-  }
-  /*== Etiqueta de km del pin ==*/
-  if (!map.getLayer("pin21km-label")) {
-    map.addLayer({
-      id: "pin21km-label",
-      type: "symbol",
-      source: "pin21km",
-      "source-layer": "pin_21km",
-      layout: {
-        "text-field": ["concat", ["to-string", ["get", "km"]], " km"],
-        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-        "text-size": 11,
-        "text-anchor": "left",
-        "text-offset": [1.4, 0],
-        "text-allow-overlap": true,
-      },
-      paint: {
-        "text-color": "#691C32",
-        "text-halo-color": "#ffffff",
-        "text-halo-width": 2,
-      },
-    });
-  }
 };
 
 /*== Crear el componente Map ==*/
@@ -659,12 +583,6 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       (p) =>
         `<div style="border-left:4px solid #ff2fd2;padding-left:8px;margin:0"><strong>Localidad:</strong> ${p.NOMGEO}</div>`,
     );
-    addHoverTooltip(
-      "pin21km",
-      (p) =>
-        `<div style="border-left:4px solid #691C32;padding-left:8px;margin:0"><strong>${p.km} km</strong><br/>${p.desc}</div>`,
-    );
-
     const comindPopup = (
       e: maplibregl.MapMouseEvent & { features?: Feature[] },
     ) => {
@@ -1313,6 +1231,43 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
       }
 
       addVectorLayers(map);
+
+      /*== Marker HTML estático: Kilómetro 21 ==*/
+      const pinEl = document.createElement("div");
+      pinEl.style.cssText = `
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: default;
+      `;
+      pinEl.innerHTML = `
+        <div style="
+          background: #691C32; color: #fff;
+          font-family: 'Montserrat', sans-serif;
+          font-size: 11px; font-weight: 700;
+          padding: 3px 8px; border-radius: 10px;
+          white-space: nowrap;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          letter-spacing: 0.3px;
+          margin-bottom: 4px;
+          align-self: center;
+        ">Kilómetro 21</div>
+        <div style="
+          width: 2px; height: 8px;
+          background: #691C32;
+          align-self: center;
+        "></div>
+        <div style="
+          width: 18px; height: 18px; border-radius: 50%;
+          background: #691C32; border: 3px solid #ffffff;
+          box-shadow: 0 0 0 2px #691C32, 0 3px 8px rgba(0,0,0,0.35);
+          align-self: center;
+        "></div>
+      `;
+      new maplibregl.Marker({ element: pinEl, anchor: "bottom" })
+        .setLngLat([-96.75083563863213, 16.483547443204632])
+        .addTo(map);
 
       const allToggleableLayers = [
         "acueducton",
