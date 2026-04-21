@@ -1,3 +1,7 @@
+@charset "UTF-8";
+@import url('https://unpkg.com/@mapbox/mapbox-gl-draw@1.4.2/dist/mapbox-gl-draw.css');
+@import url('https://unpkg.com/maplibre-gl-minimap@latest/dist/maplibre-gl-minimap.css');
+
 .App {
   position: relative;
   width: 100%;
@@ -47,9 +51,6 @@
 .view-selector {
   z-index: 2100;
 }
-
-@import url('https://unpkg.com/@mapbox/mapbox-gl-draw@1.4.2/dist/mapbox-gl-draw.css');
-@import url('https://unpkg.com/maplibre-gl-minimap@latest/dist/maplibre-gl-minimap.css');
 
 .measurement-label {
   background-color: rgba(0, 0, 0, 0.7);
