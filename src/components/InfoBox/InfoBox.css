@@ -139,7 +139,7 @@
 .floating-reveal-btn {
   position: fixed;
   left: 0;
-  top: 50%;
+  top: 8%;
   transform: translateY(-50%);
   z-index: 1001;
   border: none;
