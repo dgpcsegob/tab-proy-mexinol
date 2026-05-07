@@ -43,7 +43,7 @@
 }
 
 .view-button.active {
-  background: #691C32;
+  background: #1e5b4f;
   color: white;
   box-shadow: 0 2px 8px rgba(31, 125, 83, 0.3);
 }
@@ -103,25 +103,12 @@
 
 .map-control-button.active {
   background-color: #e7f5ff;
-  border-color: #007bff;
+  border-color: #1e5b4f;
 }
 
 .button-icon {
   width: 20px;
   height: 20px;
-}
-
-.minimap-container {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  width: 200px;
-  height: 150px;
-  border: 2px solid #007cbf;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  z-index: 10;
 }
 
 /* Estilos para el popup por defecto de MapLibre que usamos para los tooltips */
@@ -137,6 +124,17 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* Tooltips con diseño propio: contenedor transparente sin padding */
+.maplibregl-popup.custom-tooltip .maplibregl-popup-content {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.maplibregl-popup.custom-tooltip .maplibregl-popup-tip {
+  display: none;
 }
 
 @keyframes pulse {

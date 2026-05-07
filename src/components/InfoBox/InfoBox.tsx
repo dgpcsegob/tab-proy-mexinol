@@ -1,7 +1,24 @@
 import React, { useMemo, useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import "./InfoBox.css";
 
-type LegendItem = {
+export type LegendCategory = { label: string; color: string; shape?: "circle" | "square" };
+
+export type LegendItem = {
   id: string;
   label: string;
   color?: string;
@@ -9,6 +26,11 @@ type LegendItem = {
   size?: number;
   switch?: boolean;
   checked?: boolean;
+  opacity?: number;
+  type?: "group";
+  children?: LegendItem[];
+  categories?: LegendCategory[];
+  defaultOpen?: boolean;
 };
 
 export type InfoBoxSection = {
@@ -21,18 +43,29 @@ type InfoBoxProps = {
   subtitle?: string;
   sections: InfoBoxSection[];
   onToggle?: (id: string) => void;
+  onOpacityChange?: (id: string, value: number) => void;
+  onReorder?: (sectionIdx: number, newIds: string[]) => void;
+  onToggleAll?: (visible: boolean) => void;
   initialOpen?: boolean;
+  isDark?: boolean;
+  xOffset?: string;
 };
 
-/*== Toggle “gooey” (Uiverse) convertido a componente controlado ==*/
+
+/*== Toggle "gooey" (Uiverse) convertido a componente controlado ==*/
 const GooToggle: React.FC<{
   checked: boolean;
   onChange: () => void;
   ariaLabel?: string;
-}> = ({ checked, onChange, ariaLabel }) => {
+  color?: string;
+}> = ({ checked, onChange, ariaLabel, color }) => {
   const id = useMemo(() => `goo-${Math.random().toString(36).slice(2, 9)}`, []);
   return (
-    <div className="toggle-container" aria-label={ariaLabel}>
+    <div
+      className="toggle-container"
+      aria-label={ariaLabel}
+      style={color ? { "--active-color": color } as React.CSSProperties : undefined}
+    >
       <input
         id={id}
         type="checkbox"
@@ -108,21 +141,326 @@ const GooToggle: React.FC<{
   );
 };
 
+/*== Fila de leyenda reutilizable (sin drag) — usada para hijos de grupos, soporta subgrupos ==*/
+const LegendRow: React.FC<{
+  item: LegendItem;
+  onToggle?: (id: string) => void;
+  onOpacityChange?: (id: string, value: number) => void;
+}> = ({ item, onToggle, onOpacityChange }) => {
+  const [collapsed, setCollapsed] = useState(!item.defaultOpen);
+
+  if (item.type === "group") {
+    const anyChecked = item.children?.some(c => c.checked) ?? false;
+    const handleGroupToggle = () => {
+      const target = !anyChecked;
+      item.children?.forEach(child => {
+        if (!!child.checked !== target) onToggle?.(child.id);
+      });
+      setCollapsed(!target);
+    };
+    return (
+      <div>
+        <div className="legend-row legend-row-child legend-group-row">
+          <span className="drag-handle" style={{ visibility: "hidden" }}>⠿</span>
+          <button
+            className="group-expand-btn"
+            onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? "Expandir subgrupo" : "Colapsar subgrupo"}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10"
+              className={`group-chevron${collapsed ? "" : " open"}`} aria-hidden="true">
+              <polyline points="2,2 8,5 2,8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <span className="legend-label legend-group-label">{item.label}</span>
+          <GooToggle checked={anyChecked} onChange={handleGroupToggle}
+            ariaLabel={`Activar/Desactivar ${item.label}`} />
+        </div>
+        <div className={`group-children-wrapper${collapsed ? "" : " open"}`}>
+          <div className="group-children" style={{ marginLeft: 12 }}>
+            {item.children?.map(child => (
+              <LegendRow key={child.id} item={child} onToggle={onToggle} onOpacityChange={onOpacityChange} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="legend-row legend-row-child">
+        <span className="drag-handle" style={{ visibility: "hidden" }}>⠿</span>
+        {item.shape && item.color && (
+          <span className={`shape ${item.shape}`} style={{ backgroundColor: item.color, width: 12, height: 12 }} />
+        )}
+        <span className="legend-label">{item.label}</span>
+        {item.categories && (
+          <button
+            className="group-expand-btn"
+            onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? "Ver categorías" : "Ocultar categorías"}
+            style={{ marginRight: 4 }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10"
+              className={`group-chevron${collapsed ? "" : " open"}`} aria-hidden="true">
+              <polyline points="2,2 8,5 2,8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
+        {item.switch && (
+          <GooToggle
+            checked={!!item.checked}
+            onChange={() => onToggle?.(item.id)}
+            ariaLabel={`Activar/Desactivar ${item.label}`}
+            color={item.color}
+          />
+        )}
+      </div>
+      {item.categories && !collapsed && (
+        <div className="group-children" style={{ marginLeft: 22 }}>
+          {item.categories.map((cat, i) => (
+            <div key={i} className="legend-row legend-row-child" style={{ cursor: "default" }}>
+              <span className="drag-handle" style={{ visibility: "hidden" }}>⠿</span>
+              <span className={`shape ${cat.shape ?? "square"}`} style={{ backgroundColor: cat.color, width: 10, height: 10 }} />
+              <span className="legend-label" style={{ fontSize: 10, opacity: 0.85 }}>{cat.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {item.switch && item.checked && (
+        <div className="opacity-row">
+          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill={item.color ?? "#1e5b4f"}/>
+            <line x1="12" y1="2"  x2="12" y2="5"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="12" y1="19" x2="12" y2="22" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="2"  y1="12" x2="5"  y2="12" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="19" y1="12" x2="22" y2="12" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="range" className="opacity-slider" min={0} max={1} step={0.05}
+            value={item.opacity ?? 1}
+            onChange={(e) => onOpacityChange?.(item.id, parseFloat(e.target.value))}
+            aria-label={`Opacidad de ${item.label}`}
+            style={item.color ? { background: `linear-gradient(to right, #4a4a55, ${item.color})` } : undefined}
+          />
+          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill={item.color ?? "#1e5b4f"}/>
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/*== Ítem arrastrable ==*/
+const SortableItem: React.FC<{
+  item: LegendItem;
+  onToggle?: (id: string) => void;
+  onOpacityChange?: (id: string, value: number) => void;
+}> = ({ item, onToggle, onOpacityChange }) => {
+  const [collapsed, setCollapsed] = useState(!item.defaultOpen);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    background: isDragging ? "rgba(0,124,191,0.06)" : undefined,
+    borderRadius: isDragging ? 6 : undefined,
+  };
+
+  /*== Grupo colapsable ==*/
+  if (item.type === "group") {
+    const anyChecked = item.children?.some(c => c.checked) ?? false;
+    const handleGroupToggle = () => {
+      const target = !anyChecked;
+      item.children?.forEach(child => {
+        if (!!child.checked !== target) onToggle?.(child.id);
+      });
+      setCollapsed(!target);
+    };
+
+    return (
+      <div ref={setNodeRef} style={style}>
+        <div className="legend-row legend-group-row">
+          <span className="drag-handle" {...attributes} {...listeners} title="Arrastrar para reordenar">⠿</span>
+          <button
+            className="group-expand-btn"
+            onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? "Expandir grupo" : "Colapsar grupo"}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10"
+              className={`group-chevron${collapsed ? "" : " open"}`} aria-hidden="true">
+              <polyline points="2,2 8,5 2,8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <span className="legend-label legend-group-label">{item.label}</span>
+          <GooToggle
+            checked={anyChecked}
+            onChange={handleGroupToggle}
+            ariaLabel={`Activar/Desactivar ${item.label}`}
+          />
+        </div>
+        <div className={`group-children-wrapper${collapsed ? "" : " open"}`}>
+          <div className="group-children">
+            {item.children?.map(child => (
+              <LegendRow key={child.id} item={child} onToggle={onToggle} onOpacityChange={onOpacityChange} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="legend-row">
+        {/* Handle de arrastre */}
+        <span
+          className="drag-handle"
+          {...attributes}
+          {...listeners}
+          title="Arrastrar para reordenar"
+        >
+          ⠿
+        </span>
+
+        {item.shape && item.color && (
+          <span className={`shape ${item.shape}`} style={{ backgroundColor: item.color, width: 12, height: 12 }} />
+        )}
+
+        <span className="legend-label">{item.label}</span>
+
+        {item.categories && (
+          <button
+            className="group-expand-btn"
+            onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? "Ver categorías" : "Ocultar categorías"}
+            style={{ marginRight: 4 }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10"
+              className={`group-chevron${collapsed ? "" : " open"}`} aria-hidden="true">
+              <polyline points="2,2 8,5 2,8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
+
+        {item.switch && (
+          <GooToggle
+            checked={!!item.checked}
+            onChange={() => onToggle && onToggle(item.id)}
+            ariaLabel={`Activar/Desactivar ${item.label}`}
+            color={item.color}
+          />
+        )}
+      </div>
+
+      {item.categories && !collapsed && (
+        <div className="group-children" style={{ marginLeft: 22 }}>
+          {item.categories.map((cat, i) => (
+            <div key={i} className="legend-row legend-row-child" style={{ cursor: "default" }}>
+              <span className="drag-handle" style={{ visibility: "hidden" }}>⠿</span>
+              <span className={`shape ${cat.shape ?? "square"}`} style={{ backgroundColor: cat.color, width: 10, height: 10 }} />
+              <span className="legend-label" style={{ fontSize: 10, opacity: 0.85 }}>{cat.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {item.switch && item.checked && (
+        <div className="opacity-row">
+          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><title>Más transparente</title>
+            <circle cx="12" cy="12" r="4" fill={item.color ?? "#1e5b4f"}/>
+            <line x1="12" y1="2"  x2="12" y2="5"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="12" y1="19" x2="12" y2="22" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="2"  y1="12" x2="5"  y2="12" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="19" y1="12" x2="22" y2="12" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="4.22"  y1="4.22"  x2="6.34"  y2="6.34"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="19.78" y1="4.22"  x2="17.66" y2="6.34"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+            <line x1="6.34"  y1="17.66" x2="4.22"  y2="19.78" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="range"
+            className="opacity-slider"
+            min={0}
+            max={1}
+            step={0.05}
+            value={item.opacity ?? 1}
+            onChange={(e) =>
+              onOpacityChange &&
+              onOpacityChange(item.id, parseFloat(e.target.value))
+            }
+            aria-label={`Opacidad de ${item.label}`}
+            style={item.color ? {
+              background: `linear-gradient(to right, #4a4a55, ${item.color})`,
+            } : undefined}
+          />
+          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><title>Más opaco</title>
+            <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill={item.color ?? "#1e5b4f"}/>
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const InfoBox: React.FC<InfoBoxProps> = ({
   title,
   subtitle,
   sections,
   onToggle,
+  onOpacityChange,
+  onReorder,
+  onToggleAll,
   initialOpen = true,
+  isDark = false,
+  xOffset,
 }) => {
   const [open, setOpen] = useState(initialOpen);
+
+  const allVisible = sections.every((s) =>
+    s.items.every((i) => !i.switch || i.checked),
+  );
+
+  // Estado de orden por sección (índice → array de ids)
+  const [sectionOrders, setSectionOrders] = useState<string[][]>(() =>
+    sections.map((s) => s.items.map((i) => i.id)),
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  const handleDragEnd = (sectionIdx: number) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setSectionOrders((prev) => {
+      const next = prev.map((arr) => [...arr]);
+      const order = next[sectionIdx];
+      const oldIndex = order.indexOf(String(active.id));
+      const newIndex = order.indexOf(String(over.id));
+      next[sectionIdx] = arrayMove(order, oldIndex, newIndex);
+      onReorder?.(sectionIdx, next[sectionIdx]);
+      return next;
+    });
+  };
 
   return (
     <>
       {/*== Pestaña lateral cuando el panel está oculto ==*/}
       {!open && (
         <button
-          className="floating-reveal-btn"
+          className={`floating-reveal-btn${isDark ? " dark" : ""}`}
+          style={xOffset ? { left: xOffset } : undefined}
           onClick={() => setOpen(true)}
           aria-label="Mostrar panel"
           title="Mostrar panel"
@@ -132,7 +470,8 @@ const InfoBox: React.FC<InfoBoxProps> = ({
       )}
 
       <aside
-        className={`info-box ${open ? "open" : "closed"}`}
+        className={`info-box ${open ? "open" : "closed"}${isDark ? " dark" : ""}`}
+        style={xOffset ? { left: xOffset } : undefined}
         aria-hidden={!open}
       >
         <header className="info-header">
@@ -141,49 +480,72 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             {subtitle && <p className="info-subtitle">{subtitle}</p>}
           </div>
 
-          {/*== Botón para ocultar (empuja a la derecha) ==*/}
+          {/*== Botón ojo: mostrar / ocultar todas las capas ==*/}
+          {onToggleAll && (
+            <button
+              className="eye-toggle"
+              onClick={() => onToggleAll(!allVisible)}
+              title={allVisible ? "Ocultar todas las capas" : "Mostrar todas las capas"}
+              aria-label={allVisible ? "Ocultar todas las capas" : "Mostrar todas las capas"}
+            >
+              {allVisible ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              )}
+            </button>
+          )}
+
+          {/*== Botón para ocultar ==*/}
           <button
             className="side-toggle"
             onClick={() => setOpen(false)}
             aria-label="Ocultar panel"
             title="Ocultar panel"
           >
-            {/*== Chevron hacia la derecha ==*/}
             <span className="chev left" />
           </button>
         </header>
 
         <div className="info-content">
-          {sections.map((section, sIdx) => (
-            <section className="legend-section" key={sIdx}>
-              <div className="legend-title">{section.title}</div>
+          {sections.map((section, sIdx) => {
+            const order = sectionOrders[sIdx] ?? section.items.map((i) => i.id);
+            const itemMap = Object.fromEntries(section.items.map((i) => [i.id, i]));
+            const orderedItems = order.map((id) => itemMap[id]).filter(Boolean);
 
-              {section.items.map((item) => (
-                <div className="legend-row" key={item.id}>
-                  {item.shape && item.color && (
-                    <span
-                      className={`shape ${item.shape}`}
-                      style={{
-                        backgroundColor: item.color,
-                        width: 12,
-                        height: 12,
-                      }}
-                    />
-                  )}
+            return (
+              <section className="legend-section" key={sIdx}>
+                <div className="legend-title">{section.title}</div>
 
-                  <span className="legend-label">{item.label}</span>
-
-                  {item.switch && (
-                    <GooToggle
-                      checked={!!item.checked}
-                      onChange={() => onToggle && onToggle(item.id)}
-                      ariaLabel={`Activar/Desactivar ${item.label}`}
-                    />
-                  )}
-                </div>
-              ))}
-            </section>
-          ))}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd(sIdx)}
+                >
+                  <SortableContext
+                    items={order}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {orderedItems.map((item) => (
+                      <SortableItem
+                        key={item.id}
+                        item={item}
+                        onToggle={onToggle}
+                        onOpacityChange={onOpacityChange}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              </section>
+            );
+          })}
         </div>
       </aside>
     </>
