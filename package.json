@@ -2,7 +2,7 @@
   "name": "tab-proy-fracking",
   "version": "0.1.0",
   "private": true,
-  "homepage": "",
+  "homepage": "https://dgpcsegob.github.io/tab-proy-fracking",
   "dependencies": {
     "@aesqe/mapboxgl-minimap": "^1.0.0",
     "@dnd-kit/core": "^6.3.1",
@@ -27,7 +27,6 @@
     "leaflet": "^1.9.4",
     "mapbox-gl-controls": "^2.3.5",
     "maplibre-gl": "^5.6.1",
-    "netlify-cli": "^26.0.1",
     "pmtiles": "^4.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -40,7 +39,8 @@
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "eslintConfig": {
     "extends": [
