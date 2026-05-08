@@ -1798,10 +1798,6 @@ const routeIdCounter = useRef(0);
         const f = e.features[0] as any;
         if (!f.properties) return;
         tooltipManager.show(layerId, getCamposresHTML(f.properties, color), e.lngLat);
-        const hovNombre = f.properties.nombre ?? f.properties.Nombre ?? f.properties.NOMBRE;
-        const frags = map.queryRenderedFeatures(undefined, { layers: [layerId] })
-          .filter((feat: any) => (feat.properties?.nombre ?? feat.properties?.Nombre ?? feat.properties?.NOMBRE) === hovNombre);
-        setHoverPolygon(frags.length ? frags : [{ geometry: f.geometry }], color);
       });
       map.on("mouseleave", layerId, () => {
         if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
