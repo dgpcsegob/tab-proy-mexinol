@@ -9,3 +9,7 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+
+dist/
+
+public/data/*.pmtiles

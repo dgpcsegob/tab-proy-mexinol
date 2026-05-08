@@ -136,6 +136,21 @@
 .maplibregl-popup.custom-tooltip .maplibregl-popup-tip {
   display: none;
 }
+.maplibregl-popup.custom-tooltip .maplibregl-popup-close-button {
+  color: #D50000;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+.maplibregl-popup.custom-tooltip .maplibregl-popup-close-button:hover {
+  color: #ff1744;
+}
 
 @keyframes pulse {
   0% {
