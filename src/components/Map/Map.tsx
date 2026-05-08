@@ -146,7 +146,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("LocalidadesSedeINPI")) {
     map.addSource("LocalidadesSedeINPI", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/com_ind_inpi.pmtiles",
+      url: "pmtiles://data/com_ind_inpi.pmtiles",
     });
   }
   const dark2 = [
@@ -172,7 +172,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
    if (!map.getSource("asentamientos")) {
     map.addSource("asentamientos", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/asent_com_inpi.pmtiles",
+      url: "pmtiles://data/asent_com_inpi.pmtiles",
     });
   }
   if (!map.getLayer("asentamientos")) {
@@ -239,7 +239,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
     if (!map.getSource("rm")) {
     map.addSource("rm", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/rm.pmtiles",
+      url: "pmtiles://data/rm.pmtiles",
       promoteId: { "rm_tile": "NOMGEO" },
     });
   }
@@ -251,17 +251,24 @@ const addVectorLayers = (map: maplibregl.Map) => {
       "source-layer": "rm_tile",
       paint: {
         // "fill-color": "#fbff08",
-        "fill-opacity": 0.2,
-        "fill-outline-color": "#fbff00",
+        "fill-opacity": 0.1,
       },
     });
   }
- 
+  if (!map.getLayer("rm-border")) {
+    map.addLayer({
+      id: "rm-border",
+      type: "line",
+      source: "rm",
+      "source-layer": "rm_tile",
+      paint: { "line-color": "#fbff00", "line-width": 1, "line-opacity": 0.2 },
+    });
+  }
 
   if (!map.getSource("ent")) {
     map.addSource("ent", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/00ent.pmtiles",
+      url: "pmtiles://data/00ent.pmtiles",
       promoteId: { "00ent_tile": "NOMGEO" },
     });
   }
@@ -273,8 +280,16 @@ const addVectorLayers = (map: maplibregl.Map) => {
       "source-layer": "00ent_tile",
       paint: {
         "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.2, 0.01] as any,
-        "fill-outline-color": "#fdff72",
       },
+    });
+  }
+  if (!map.getLayer("ent-border")) {
+    map.addLayer({
+      id: "ent-border",
+      type: "line",
+      source: "ent",
+      "source-layer": "00ent_tile",
+      paint: { "line-color": "#fdff72", "line-width": 0.8, "line-opacity": 0.7 },
     });
   }
   if (!map.getLayer("ent-click-border")) {
@@ -294,7 +309,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("mun")) {
     map.addSource("mun", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/00mun.pmtiles",
+      url: "pmtiles://data/00mun.pmtiles",
       promoteId: { "00mun_tile": "NOMGEO" },
     });
   }
@@ -310,7 +325,6 @@ const addVectorLayers = (map: maplibregl.Map) => {
           ["boolean", ["feature-state", "clicked"], false], 0.3,
           0,
         ] as any,
-        "fill-outline-color": "#90f2ff",
       },
     });
   }
@@ -318,7 +332,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("anp")) {
     map.addSource("anp", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/areas_naturales_protegidas_federales.pmtiles",
+      url: "pmtiles://data/areas_naturales_protegidas_federales.pmtiles",
     });
   }
   if (!map.getLayer("anp")) {
@@ -329,8 +343,8 @@ const addVectorLayers = (map: maplibregl.Map) => {
       "source-layer": "areas_naturales_protegidas_federales_tile",
       paint: {
         "fill-color": "#AEEA00",
-        "fill-opacity": 0.5, 
-        "fill-outline-color": "#AEEA00",
+        "fill-opacity": 0.5,
+        "fill-antialias": false,
       },
     });
   }
@@ -349,7 +363,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
       paint: {
         "fill-color": "#FFAB40",
         "fill-opacity": 0.4,
-        "fill-outline-color": "#FFAB40",
+        "fill-antialias": false,
       },
     });
   }
@@ -357,7 +371,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("camposres")) {
     map.addSource("camposres", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Campos_(Reservas_01-01-2024).pmtiles",
+      url: "pmtiles://data/Campos_(Reservas_01-01-2024).pmtiles",
     });
   }
   // 3 capas filtradas por tipo — campo "CLASIFICACION"
@@ -374,15 +388,15 @@ const addVectorLayers = (map: maplibregl.Map) => {
         source: "camposres",
         "source-layer": "Campos_Reservas_01012024_tile",
         filter: ["==", ["get", "ubicacin"], c.tipo],
-        paint: { "fill-color": c.color, "fill-opacity": 0.6, "fill-outline-color": c.color },
+        paint: { "fill-color": c.color, "fill-opacity": 0.6, "fill-antialias": false },
       });
     }
   }
-   
+
   if (!map.getSource("zonascult")) {
     map.addSource("zonascult", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/cult_zonas_arqueologicas_inah_0922_xy_p.pmtiles",
+      url: "pmtiles://data/cult_zonas_arqueologicas_inah_0922_xy_p.pmtiles",
     });
   }
   if (!map.getLayer("zonascult")) {
@@ -423,7 +437,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
         source: "diputados",
         "source-layer": "diputados_lxvi_fracking_—_Diputados_LXVI_legislatura_con_fracking_potencial_tile",
         filter: ["==", ["get", "Grupo_Parlamentario"], c.partido],
-        paint: { "fill-color": c.color, "fill-opacity": 0.5, "fill-outline-color": c.color },
+        paint: { "fill-color": c.color, "fill-opacity": 0.5, "fill-antialias": false },
       });
     }
   }
@@ -464,7 +478,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
       if (!map.getSource("camposres_comind")) {
     map.addSource("camposres_comind", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/campos_reservas-com_ind.pmtiles",
+      url: "pmtiles://data/campos_reservas-com_ind.pmtiles",
     });
   }
   if (!map.getLayer("camposres_comind-halo")) {
@@ -541,7 +555,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
         source: "provinciaspnc",
         "source-layer": "provincias_prospectivas_no_convencionales_—_Provincias_con_recursos_prospectivos_no_convencionales_tile",
         filter: ["==", ["get", "nombre"], c.name],
-        paint: { "fill-color": c.color, "fill-opacity": 0.4, "fill-outline-color": c.color },
+        paint: { "fill-color": c.color, "fill-opacity": 0.4, "fill-antialias": false },
       });
     }
   }
@@ -570,7 +584,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
         paint: {
           "fill-color": capa.color,
           "fill-opacity": 0.6,
-          "fill-outline-color": capa.color,
+          "fill-antialias": false,
         },
       });
     }
@@ -578,7 +592,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
        if (!map.getSource("territoriospi")) {
     map.addSource("territoriospi", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/territorios_pueblos_ing.pmtiles",
+      url: "pmtiles://data/territorios_pueblos_ing.pmtiles",
     });
   }
   if (!map.getLayer("territoriospi")) {
@@ -590,14 +604,14 @@ const addVectorLayers = (map: maplibregl.Map) => {
       paint: {
         "fill-color": "#FF00E5",
         "fill-opacity": 0.3,
-        "fill-outline-color": "#FF00E5",
+        "fill-antialias": false,
       },
     });
   }
   if (!map.getSource("zonaap")) {
     map.addSource("zonaap", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Aguas_Profundas.pmtiles",
+      url: "pmtiles://data/Zona_Aguas_Profundas.pmtiles",
     });
   }
   if (!map.getLayer("zonaap")) {
@@ -617,7 +631,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
     if (!map.getSource("zonaas")) {
     map.addSource("zonaas", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Aguas_Someras.pmtiles",
+      url: "pmtiles://data/Zona_Aguas_Someras.pmtiles",
     });
   }
   if (!map.getLayer("zonaas")) {
@@ -638,7 +652,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonaburgos")) {
     map.addSource("zonaburgos", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Burgos.pmtiles",
+      url: "pmtiles://data/Zona_Burgos.pmtiles",
     });
   }
   if (!map.getLayer("zonaburgos")) {
@@ -659,7 +673,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonacuencas")) {
     map.addSource("zonacuencas", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Cuencas_del_Sureste.pmtiles",
+      url: "pmtiles://data/Zona_Cuencas_del_Sureste.pmtiles",
     });
   }
   if (!map.getLayer("zonacuencas")) {
@@ -680,7 +694,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonatam")) {
     map.addSource("zonatam", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Tampico-Misantla.pmtiles",
+      url: "pmtiles://data/Zona_Tampico-Misantla.pmtiles",
     });
   }
   if (!map.getLayer("zonatam")) {
@@ -701,7 +715,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonaver")) {
     map.addSource("zonaver", {
       type: "vector",
-      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Veracruz.pmtiles",
+      url: "pmtiles://data/Zona_Veracruz.pmtiles",
     });
   }
   if (!map.getLayer("zonaver")) {
@@ -833,9 +847,9 @@ const addVectorLayers = (map: maplibregl.Map) => {
         "text-ignore-placement": true,
       } as any,
       paint: {
-        "text-color": "#ffffff",
-        "text-halo-color": "#ff7626",
-        "text-halo-width": 5,
+        "text-color": "#ffe0b2",
+        "text-halo-color": "#0f1117",
+        "text-halo-width": 2,
       },
     });
   }
@@ -1415,12 +1429,6 @@ const routeIdCounter = useRef(0);
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const f = e.features[0] as any;
       if (f.properties) tooltipManager.show("territoriospi", getTerrpiHTML(f.properties), e.lngLat);
-      const hovNombre = f.properties?.pueblo ?? f.properties?.Pueblo ?? f.properties?.PUEBLO ?? f.properties?.nombre;
-      const frags = hovNombre != null
-        ? map.queryRenderedFeatures(undefined, { layers: ["territoriospi"] })
-            .filter((feat: any) => (feat.properties?.pueblo ?? feat.properties?.Pueblo ?? feat.properties?.PUEBLO ?? feat.properties?.nombre) === hovNombre)
-        : [];
-      setHoverPolygon(frags.length ? frags : [{ geometry: f.geometry }], "#FF00E5");
     });
     map.on("mouseleave", "territoriospi", () => {
       if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("territoriospi"); clearHoverPolygon(); }
@@ -1615,10 +1623,6 @@ const routeIdCounter = useRef(0);
         const f = e.features[0] as any;
         if (!f.properties) return;
         tooltipManager.show(layerId, getProvinciaHTML(f.properties, color), e.lngLat);
-        const hovNombre = f.properties.nombre ?? f.properties.NOMBRE;
-        const frags = map.queryRenderedFeatures(undefined, { layers: [layerId] })
-          .filter((feat: any) => (feat.properties?.nombre ?? feat.properties?.NOMBRE) === hovNombre);
-        setHoverPolygon(frags.length ? frags : [{ geometry: f.geometry }], color);
       });
       map.on("mouseleave", layerId, () => {
         if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
@@ -1669,12 +1673,6 @@ const routeIdCounter = useRef(0);
         const f = e.features[0] as any;
         if (f.properties) {
           tooltipManager.show(layerId, getDiputadoHTML(f.properties, color, partido), e.lngLat);
-          const hovDip = f.properties.Diputado ?? f.properties.diputado ?? f.properties.Nombre ?? f.properties.nombre ?? f.properties.NOMBRE;
-          const frags = hovDip != null
-            ? map.queryRenderedFeatures(undefined, { layers: [layerId] })
-                .filter((feat: any) => (feat.properties?.Diputado ?? feat.properties?.diputado ?? feat.properties?.Nombre ?? feat.properties?.nombre ?? feat.properties?.NOMBRE) === hovDip)
-            : [];
-          setHoverPolygon(frags.length ? frags : [{ geometry: f.geometry }], color);
         }
       });
       map.on("mouseleave", layerId, () => {
@@ -1707,12 +1705,6 @@ const routeIdCounter = useRef(0);
         if (checkMeasurement() || !e.features || e.features.length === 0) return;
         const f = e.features[0] as any;
         if (f.properties) tooltipManager.show(layerId, getRiesgoHTML(f.properties, color), e.lngLat);
-        const hovProv = f.properties?.Provincia ?? f.properties?.provincia;
-        const frags = hovProv != null
-          ? map.queryRenderedFeatures(undefined, { layers: [layerId] })
-              .filter((feat: any) => (feat.properties?.Provincia ?? feat.properties?.provincia) === hovProv)
-          : [];
-        setHoverPolygon(frags.length ? frags : [{ geometry: f.geometry }], color);
       });
       map.on("mouseleave", layerId, () => {
         if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
@@ -1776,12 +1768,6 @@ const routeIdCounter = useRef(0);
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
       const f = e.features[0] as any;
       if (f.properties) tooltipManager.show("areaspotnc", getAreasHTML(f.properties), e.lngLat);
-      const hovProv = f.properties?.Provincia ?? f.properties?.provincia;
-      const fragsAreas = hovProv != null
-        ? map.queryRenderedFeatures(undefined, { layers: ["areaspotnc"] })
-            .filter((feat: any) => (feat.properties?.Provincia ?? feat.properties?.provincia) === hovProv)
-        : [];
-      setHoverPolygon(fragsAreas.length ? fragsAreas : [{ geometry: f.geometry }], color_areas);
     });
     map.on("mouseleave", "areaspotnc", () => {
       if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("areaspotnc"); clearHoverPolygon(); }
@@ -1799,7 +1785,7 @@ const routeIdCounter = useRef(0);
       `</div>` +
       `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
       `<span style="color:#7f849c">Ubicación</span><span>${p.ubicacin ?? p.ubicacion ?? p.Ubicacion ?? "—"}</span>` +
-      `<span style="color:#7f849c">Superficie</span><span style="color:${color};font-weight:600">${p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") : "—"}</span>` +
+      `<span style="color:#7f849c">Superficie</span><span style="color:${color};font-weight:600">${p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—"}</span>` +
       `</div></div>`;
 
     ["camposresas", "camposresm", "camposrest"].forEach((layerId) => {
@@ -1833,7 +1819,7 @@ const routeIdCounter = useRef(0);
       `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
       `<span style="color:#7f849c">Estado</span><span>${p.estado ?? p.Estado ?? "—"}</span>` +
       `<span style="color:#7f849c">Región</span><span>${p.regin ?? p.region ?? p.Region ?? p.región ?? "—"}</span>` +
-      `<span style="color:#7f849c">Superficie</span><span style="color:${color_anp};font-weight:600">${p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") : "—"}</span>` +
+      `<span style="color:#7f849c">Superficie</span><span style="color:${color_anp};font-weight:600">${p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—"}</span>` +
       `</div></div>`;
     map.on("mouseenter", "anp", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
@@ -1843,13 +1829,6 @@ const routeIdCounter = useRef(0);
       const f = e.features[0] as any;
       if (!f.properties) return;
       tooltipManager.show("anp", getAnpHTML(f.properties), e.lngLat);
-      const hovNombre = f.properties.nombre ?? f.properties.Nombre ?? f.properties.NOMBRE;
-      const frags = map.queryRenderedFeatures(undefined, { layers: ["anp"] })
-        .filter((feat: any) => {
-          const n = feat.properties?.nombre ?? feat.properties?.Nombre ?? feat.properties?.NOMBRE;
-          return n != null && n === hovNombre;
-        });
-      setHoverPolygon(frags.length ? frags : [{ geometry: f.geometry }], color_anp);
     });
     map.on("mouseleave", "anp", () => {
       if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("anp"); clearHoverPolygon(); }
@@ -2093,6 +2072,7 @@ const routeIdCounter = useRef(0);
           }
           if (id === "ent") {
             if (map.getLayer("ent-click-border")) map.setLayoutProperty("ent-click-border", "visibility", vis);
+            if (map.getLayer("ent-border")) map.setLayoutProperty("ent-border", "visibility", vis);
           }
           if (id === "camposres_comind") {
             ["camposres_comind-halo", "camposres_comind-pulse"].forEach((sub) => {
@@ -2779,6 +2759,7 @@ const routeIdCounter = useRef(0);
       attributionControl: false,
       maxBounds: mexicoBounds,
       maxPitch: 85,
+      fadeDuration: 0,
     });
     mapRef.current = map;
 
@@ -2820,7 +2801,7 @@ const routeIdCounter = useRef(0);
         // Ambiental
         "anp", "zonascult",
         // División política
-        "ent", "mun",
+        "ent", "ent-border", "mun",
         // Comunidades
         "LocalidadesSedeINPI", "asentamientos",
       ].forEach((id) => {
@@ -3461,7 +3442,7 @@ const routeIdCounter = useRef(0);
         onMouseLeave={() => setLogoHovered(false)}
       >
         <img
-          src={`/logo_SEGOB.png`}
+          src={`./logo_SEGOB.png`}
           alt="SEGOB"
           style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
         />
@@ -3576,8 +3557,8 @@ const routeIdCounter = useRef(0);
           <img
             src={
               isSatellite
-                ? `/satelitec.png`
-                : `/satelitebw.png`
+                ? `./satelitec.png`
+                : `./satelitebw.png`
             }
             alt="Cambiar vista"
             className="button-icon"
@@ -3595,8 +3576,8 @@ const routeIdCounter = useRef(0);
           <img
             src={
               isMeasuring
-                ? `/rutac.png`
-                : `/rutabw.png`
+                ? `./rutac.png`
+                : `./rutabw.png`
             }
             alt="Medir ruta"
             className="button-icon"
@@ -3760,12 +3741,12 @@ const routeIdCounter = useRef(0);
             <div style={{ position: "absolute", top: 20, right: 10, zIndex: 20, display: "flex", flexDirection: "column", gap: 10 }}>
               <button style={controlButtonStyle} onClick={toggleSatellite2}
                 title={isSatellite2 ? "Volver a mapa normal" : "Ver mapa satelital"}>
-                <img src={isSatellite2 ? `/satelitec.png` : `/satelitebw.png`}
+                <img src={isSatellite2 ? `./satelitec.png` : `./satelitebw.png`}
                   alt="Satelital" style={bwIconStyle(isSatellite2)} />
               </button>
               <button style={controlButtonStyle} onClick={() => { setIsMeasuring2((v) => { if (!v) { setIsMeasuringLine2(false); clearAllRoutes2(); setCurrentPoints2([]); setCurrentLinePoints2([]); } return !v; }); }}
                 title={isMeasuring2 ? "Terminar medición de ruta" : "Medir ruta"}>
-                <img src={isMeasuring2 ? `/rutac.png` : `/rutabw.png`}
+                <img src={isMeasuring2 ? `./rutac.png` : `./rutabw.png`}
                   alt="Medir ruta" style={bwIconStyle(isMeasuring2)} />
               </button>
               <button style={controlButtonStyle} onClick={() => { setIsMeasuringLine2((v) => { if (!v) { setIsMeasuring2(false); clearAllRoutes2(); setCurrentPoints2([]); setCurrentLinePoints2([]); } return !v; }); }}
