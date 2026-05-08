@@ -13,3 +13,9 @@ Thumbs.db
 dist/
 
 public/data/*.pmtiles
+
+node_modules/
+
+*.pmtiles
+
+*.pmtiles
