@@ -146,7 +146,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("LocalidadesSedeINPI")) {
     map.addSource("LocalidadesSedeINPI", {
       type: "vector",
-      url: "pmtiles://data/com_ind_inpi.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/com_ind_inpi.pmtiles",
     });
   }
   const dark2 = [
@@ -172,7 +172,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
    if (!map.getSource("asentamientos")) {
     map.addSource("asentamientos", {
       type: "vector",
-      url: "pmtiles://data/asent_com_inpi.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/asent_com_inpi.pmtiles",
     });
   }
   if (!map.getLayer("asentamientos")) {
@@ -239,7 +239,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
     if (!map.getSource("rm")) {
     map.addSource("rm", {
       type: "vector",
-      url: "pmtiles://data/rm.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/rm.pmtiles",
       promoteId: { "rm_tile": "NOMGEO" },
     });
   }
@@ -261,7 +261,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("ent")) {
     map.addSource("ent", {
       type: "vector",
-      url: "pmtiles://data/00ent.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/00ent.pmtiles",
       promoteId: { "00ent_tile": "NOMGEO" },
     });
   }
@@ -294,7 +294,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("mun")) {
     map.addSource("mun", {
       type: "vector",
-      url: "pmtiles://data/00mun.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/00mun.pmtiles",
       promoteId: { "00mun_tile": "NOMGEO" },
     });
   }
@@ -318,7 +318,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("anp")) {
     map.addSource("anp", {
       type: "vector",
-      url: "pmtiles://data/areas_naturales_protegidas_federales.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/areas_naturales_protegidas_federales.pmtiles",
     });
   }
   if (!map.getLayer("anp")) {
@@ -357,7 +357,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("camposres")) {
     map.addSource("camposres", {
       type: "vector",
-      url: "pmtiles://data/Campos_(Reservas_01-01-2024).pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Campos_(Reservas_01-01-2024).pmtiles",
     });
   }
   // 3 capas filtradas por tipo — campo "CLASIFICACION"
@@ -382,7 +382,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonascult")) {
     map.addSource("zonascult", {
       type: "vector",
-      url: "pmtiles://data/cult_zonas_arqueologicas_inah_0922_xy_p.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/cult_zonas_arqueologicas_inah_0922_xy_p.pmtiles",
     });
   }
   if (!map.getLayer("zonascult")) {
@@ -464,7 +464,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
       if (!map.getSource("camposres_comind")) {
     map.addSource("camposres_comind", {
       type: "vector",
-      url: "pmtiles://data/campos_reservas-com_ind.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/campos_reservas-com_ind.pmtiles",
     });
   }
   if (!map.getLayer("camposres_comind-halo")) {
@@ -578,7 +578,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
        if (!map.getSource("territoriospi")) {
     map.addSource("territoriospi", {
       type: "vector",
-      url: "pmtiles://data/territorios_pueblos_ing.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/territorios_pueblos_ing.pmtiles",
     });
   }
   if (!map.getLayer("territoriospi")) {
@@ -597,7 +597,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonaap")) {
     map.addSource("zonaap", {
       type: "vector",
-      url: "pmtiles://data/Zona_Aguas_Profundas.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Aguas_Profundas.pmtiles",
     });
   }
   if (!map.getLayer("zonaap")) {
@@ -617,7 +617,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
     if (!map.getSource("zonaas")) {
     map.addSource("zonaas", {
       type: "vector",
-      url: "pmtiles://data/Zona_Aguas_Someras.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Aguas_Someras.pmtiles",
     });
   }
   if (!map.getLayer("zonaas")) {
@@ -638,7 +638,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonaburgos")) {
     map.addSource("zonaburgos", {
       type: "vector",
-      url: "pmtiles://data/Zona_Burgos.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Burgos.pmtiles",
     });
   }
   if (!map.getLayer("zonaburgos")) {
@@ -659,7 +659,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonacuencas")) {
     map.addSource("zonacuencas", {
       type: "vector",
-      url: "pmtiles://data/Zona_Cuencas_del_Sureste.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Cuencas_del_Sureste.pmtiles",
     });
   }
   if (!map.getLayer("zonacuencas")) {
@@ -680,7 +680,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonatam")) {
     map.addSource("zonatam", {
       type: "vector",
-      url: "pmtiles://data/Zona_Tampico-Misantla.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Tampico-Misantla.pmtiles",
     });
   }
   if (!map.getLayer("zonatam")) {
@@ -701,7 +701,7 @@ const addVectorLayers = (map: maplibregl.Map) => {
   if (!map.getSource("zonaver")) {
     map.addSource("zonaver", {
       type: "vector",
-      url: "pmtiles://data/Zona_Veracruz.pmtiles",
+      url: "pmtiles://https://github.com/dgpcsegob/tab-fracking-mex/releases/download/v1.0/Zona_Veracruz.pmtiles",
     });
   }
   if (!map.getLayer("zonaver")) {
