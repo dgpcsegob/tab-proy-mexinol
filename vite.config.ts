@@ -2,7 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
+  base: '/tab-fracking-mex/',
   plugins: [react()],
-  server: { port: 3000 },
-  build: { outDir: "dist" },   // mantiene la misma carpeta que CRA
+  build: {
+    outDir: 'dist',
+  },  // mantiene la misma carpeta que CRA
 });

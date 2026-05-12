@@ -881,6 +881,8 @@ const addVectorLayers = (map: maplibregl.Map) => {
 
 };
 
+const mexicoBounds: [LngLatLike, LngLatLike] = [[-137.82575, 7.10986], [-65.55923, 34.86389]];
+
 /*== Crear el componente Map ==*/
 const Map: React.FC<MapProps> = ({
   layersVisibility,
@@ -964,6 +966,19 @@ const routeIdCounter = useRef(0);
   const isMeasuringLineRef = useRef(isMeasuringLine);
   isMeasuringRef.current = isMeasuring;
   isMeasuringLineRef.current = isMeasuringLine;
+
+  // Refs específicas de Panel 2 para tooltips
+  const isMeasuringRef2 = useRef(isMeasuring2);
+  const isMeasuringLineRef2 = useRef(isMeasuringLine2);
+  isMeasuringRef2.current = isMeasuring2;
+  isMeasuringLineRef2.current = isMeasuringLine2;
+  const pinnedPuebloIdRef2 = useRef<number | null>(null);
+  const pinnedComindIdRef2 = useRef<number | null>(null);
+  const prevMapViewRef2 = useRef<{ center: maplibregl.LngLatLike; zoom: number; bearing: number; pitch: number } | null>(null);
+  const asentPulseId2 = useRef<number | null>(null);
+  const [pinnedComindData2, setPinnedComindData2] = useState<Record<string, any> | null>(null);
+  const pinnedComindSetRef2 = useRef(setPinnedComindData2);
+  pinnedComindSetRef2.current = setPinnedComindData2;
 
   const clearCurrentPoints = useCallback(() => {
     const map = mapRef.current;
@@ -1153,11 +1168,27 @@ const routeIdCounter = useRef(0);
   }, [routesData, linesData, clearCurrentPoints]);
 
   /*== Adjunta eventos de tooltip a las capas relevantes ==*/
-  const attachAllTooltipEvents = useCallback((map: MaplibreMap) => {
-    const popup = popupRef.current;
+  const attachAllTooltipEvents = useCallback((map: MaplibreMap, panelCfg?: {
+    isMeasuringRef: React.MutableRefObject<boolean>;
+    isMeasuringLineRef: React.MutableRefObject<boolean>;
+    pinnedPuebloIdRef: React.MutableRefObject<number | null>;
+    pinnedComindIdRef: React.MutableRefObject<number | null>;
+    pinnedComindSetRef: React.MutableRefObject<React.Dispatch<React.SetStateAction<Record<string, any> | null>>>;
+    prevMapViewRef: React.MutableRefObject<{ center: maplibregl.LngLatLike; zoom: number; bearing: number; pitch: number } | null>;
+    asentPulseId: React.MutableRefObject<number | null>;
+  }) => {
+    // Aliases: usa refs del cfg (Panel 2) o los de Panel 1 por defecto
+    const _isMeasuringRef      = panelCfg?.isMeasuringRef      ?? isMeasuringRef;
+    const _isMeasuringLineRef  = panelCfg?.isMeasuringLineRef  ?? isMeasuringLineRef;
+    const _pinnedPuebloIdRef   = panelCfg?.pinnedPuebloIdRef   ?? pinnedPuebloIdRef;
+    const _pinnedComindIdRef   = panelCfg?.pinnedComindIdRef   ?? pinnedComindIdRef;
+    const _pinnedComindSetRef  = panelCfg?.pinnedComindSetRef  ?? pinnedComindSetRef;
+    const _prevMapViewRef      = panelCfg?.prevMapViewRef      ?? prevMapViewRef;
+    const _asentPulseId        = panelCfg?.asentPulseId        ?? asentPulseId;
+    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
 
     const checkMeasurement = () =>
-      isMeasuringRef.current || isMeasuringLineRef.current;
+      _isMeasuringRef.current || _isMeasuringLineRef.current;
 
     /*== Feature-state hover y clicked para División Política (ent/mun) ==*/
     const divpolHoveredId: Record<string, string | number | null> = { ent: null, mun: null };
@@ -1204,7 +1235,7 @@ const routeIdCounter = useRef(0);
 
     /*== Helpers de highlight de punto hover (para capas circle) ==*/
     const setHoverPoint = (geom: any, color: string) => {
-      if (pinnedPuebloIdRef.current != null) return;
+      if (_pinnedPuebloIdRef.current != null) return;
       try {
         map.setPaintProperty("hover-point", "circle-color", color);
         map.setPaintProperty("hover-point-glow", "circle-color", color);
@@ -1213,7 +1244,7 @@ const routeIdCounter = useRef(0);
       if (src && geom) src.setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: geom, properties: {} }] } as any);
     };
     const clearHoverPoint = () => {
-      if (pinnedPuebloIdRef.current != null) return;
+      if (_pinnedPuebloIdRef.current != null) return;
       try {
         map.setPaintProperty("hover-point", "circle-color", "#ec3db8");
         map.setPaintProperty("hover-point-glow", "circle-color", "#ec3db8");
@@ -1230,25 +1261,36 @@ const routeIdCounter = useRef(0);
       let pinnedLngLat: maplibregl.LngLat | null = null;
       const master = new maplibregl.Popup({
         closeButton: false, closeOnClick: false,
-        className: "custom-tooltip", maxWidth: "320px",
+        className: "custom-tooltip", maxWidth: "720px",
         offset: [0, -18],
-        anchor: "bottom",
       });
-      const sep = '<div style="border-top:1px solid rgba(255,255,255,0.08);margin:3px 0"></div>';
+      // camposres_comind es la capa prioritaria: siempre primera y ancla la posición del popup
+      const PRIORITY_FIRST = "camposres_comind";
+      const hoverLngLatReg: Record<string, maplibregl.LngLat> = {};
+
       const rebuild = () => {
         const pinned = Object.values(pinnedReg);
-        const hover  = Object.values(hoverReg);
-        if (!pinned.length && !hover.length) { master.remove(); return; }
-        // Posición: si hay hover activo usa esa, si solo hay pin usa la del click
-        const lngLat = hover.length && hoverLngLat ? hoverLngLat : pinnedLngLat;
+        // Ordenar hover: camposres_comind primero, el resto en orden de inserción
+        const hoverEntries = Object.entries(hoverReg);
+        const priority = hoverEntries.filter(([k]) => k === PRIORITY_FIRST);
+        const rest     = hoverEntries.filter(([k]) => k !== PRIORITY_FIRST);
+        const hover    = [...priority, ...rest].map(([, v]) => v);
+        const all = [...pinned, ...hover];
+        if (!all.length) { master.remove(); return; }
+        // Posición: si camposres_comind está activa usa su lngLat, si no el último hover, si no el pin
+        const lngLat = hoverLngLatReg[PRIORITY_FIRST]
+          ?? (hover.length && hoverLngLat ? hoverLngLat : pinnedLngLat);
         if (!lngLat) { master.remove(); return; }
-        master.setLngLat(lngLat).setHTML([...pinned, ...hover].join(sep)).addTo(map);
+        const html = all.length === 1
+          ? all[0]
+          : `<div style="display:grid;grid-template-columns:repeat(auto-fill,215px);gap:6px">${all.join("")}</div>`;
+        master.setLngLat(lngLat).setHTML(html).addTo(map);
       };
       return {
         show:  (key: string, html: string, ll: maplibregl.LngLat) => {
-          hoverReg[key] = html; hoverLngLat = ll; rebuild();
+          hoverReg[key] = html; hoverLngLat = ll; hoverLngLatReg[key] = ll; rebuild();
         },
-        hide:  (key: string) => { delete hoverReg[key]; rebuild(); },
+        hide:  (key: string) => { delete hoverReg[key]; delete hoverLngLatReg[key]; rebuild(); },
         pin:   (key: string, html: string, ll: maplibregl.LngLat) => {
           pinnedReg[key] = html; pinnedLngLat = ll; rebuild();
         },
@@ -1256,6 +1298,23 @@ const routeIdCounter = useRef(0);
         hasPinned: (key: string) => key in pinnedReg,
       };
     })();
+
+    /*== Tarjeta de tooltip estandarizada: ancho fijo, tipografía uniforme ==*/
+    const tc = (accent: string, title: string, rows: Array<[string, string, string?]>) => {
+      const body = rows.length
+        ? `<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:11px;color:#cdd6f4">` +
+          rows.map(([lbl, val, col]) =>
+            `<span style="color:#7f849c;white-space:nowrap">${lbl}</span>` +
+            `<span style="${col ? `color:${col};font-weight:600` : ""}">${val}</span>`
+          ).join("") +
+          `</div>`
+        : "";
+      return `<div style="background:#0f1117;border:1px solid ${accent};border-radius:8px;padding:10px 12px;width:215px;box-sizing:border-box;box-shadow:0 3px 16px ${accent}44">` +
+        `<div style="display:flex;align-items:center;gap:7px;margin-bottom:${rows.length ? "7" : "0"}px">` +
+        `<span style="display:inline-block;width:9px;height:9px;flex-shrink:0;border-radius:50%;background:${accent};box-shadow:0 0 5px ${accent}"></span>` +
+        `<strong style="color:${accent};font-size:12px;letter-spacing:0.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:175px;display:block">${title}</strong>` +
+        `</div>${body}</div>`;
+    };
 
     /*== Helper para registrar tooltip fluido (mousemove + cursor) ==*/
     const addHoverTooltip = (layerId: string, getHTML: (props: any) => string) => {
@@ -1273,38 +1332,52 @@ const routeIdCounter = useRef(0);
     };
 
     /*== Tooltip oscuro para camposres_comind ==*/
-    const getComindHTML = (p: any) =>
-      `<div style="background:#0f1117;border:1px solid #D50000;border-radius:8px;padding:12px 14px;min-width:200px;box-shadow:0 4px 20px rgba(213,0,0,0.35)">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#D50000;box-shadow:0 0 6px #D50000"></span>` +
-      `<strong style="color:#ff5252;font-size:13px;letter-spacing:0.3px">${p.NOM_COM ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Estado</span><span>${p.NOM_ENT ?? "—"}</span>` +
-      `<span style="color:#7f849c">Municipio</span><span>${p.NOM_MUN ?? "—"}</span>` +
-      `<span style="color:#7f849c">Pueblo</span><span>${p.Pueblo ?? "—"}</span>` +
-      `<span style="color:#7f849c">Pob. total</span><span style="color:#ff8a80;font-weight:600">${p.POBTOT != null ? Number(p.POBTOT).toLocaleString("es-MX") : "—"}</span>` +
-      `</div>` +
-      `</div>`;
+    const getComindHTML = (p: any) => tc("#D50000", p.NOM_COM ?? "—", [
+      ["Estado",    p.NOM_ENT ?? "—"],
+      ["Municipio", p.NOM_MUN ?? "—"],
+      ["Pueblo",    p.Pueblo ?? "—"],
+      ["Pob. total", p.POBTOT != null ? Number(p.POBTOT).toLocaleString("es-MX") : "—", "#ff8a80"],
+    ]);
+
+    // Cursor por la capa rendered (círculo exacto); tooltip via bbox centralizado
+    let _comindHoverShowing = false;
     map.on("mouseenter", "camposres_comind", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
     });
-    map.on("mousemove", "camposres_comind", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      if (f.properties) tooltipManager.show("camposres_comind", getComindHTML(f.properties), e.lngLat);
-      setHoverPoint(f.geometry, "#D50000");
-    });
     map.on("mouseleave", "camposres_comind", () => {
-      if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("camposres_comind"); clearHoverPoint(); }
+      if (!checkMeasurement()) {
+        map.getCanvas().style.cursor = "";
+        if (_comindHoverShowing) { tooltipManager.hide("camposres_comind"); clearHoverPoint(); _comindHoverShowing = false; }
+      }
+    });
+    // Bbox ±8px: detecta el círculo antes de que el cursor esté exactamente encima
+    map.on("mousemove", (e: maplibregl.MapMouseEvent) => {
+      if (checkMeasurement() || !map.getLayer("camposres_comind")) return;
+      const bbox: [maplibregl.PointLike, maplibregl.PointLike] = [
+        [e.point.x - 8, e.point.y - 8],
+        [e.point.x + 8, e.point.y + 8],
+      ];
+      const feats = map.queryRenderedFeatures(bbox, { layers: ["camposres_comind"] });
+      if (feats.length > 0) {
+        const f = feats[0] as any;
+        if (f.properties) {
+          tooltipManager.show("camposres_comind", getComindHTML(f.properties), e.lngLat);
+          setHoverPoint(f.geometry, "#D50000");
+          _comindHoverShowing = true;
+        }
+      } else if (_comindHoverShowing) {
+        tooltipManager.hide("camposres_comind");
+        clearHoverPoint();
+        _comindHoverShowing = false;
+      }
     });
 
     /*== camposres_comind click: panel React fijo + zoom + asentamientos ==*/
     const NO_MATCH = ["==", ["literal", 1], 0] as any;
 
     const clearComindHighlight = () => {
-      pinnedComindSetRef.current(null);
-      pinnedComindIdRef.current = null;
+      _pinnedComindSetRef.current(null);
+      _pinnedComindIdRef.current = null;
       if (map.getLayer("asentamientos-comind-dots"))
         map.setFilter("asentamientos-comind-dots", NO_MATCH);
       if (map.getLayer("asentamientos-comind-labels"))
@@ -1320,19 +1393,19 @@ const routeIdCounter = useRef(0);
       const comId: number | null = props.ID != null ? Number(props.ID) : null;
 
       // segundo click en la misma comunidad: desanclar
-      if (pinnedComindIdRef.current != null && pinnedComindIdRef.current === comId) {
+      if (_pinnedComindIdRef.current != null && _pinnedComindIdRef.current === comId) {
         clearComindHighlight();
         return;
       }
 
-      pinnedComindIdRef.current = comId;
+      _pinnedComindIdRef.current = comId;
       tooltipManager.hide("camposres_comind");
 
       // Mostrar panel React fijo con los datos de la comunidad
-      pinnedComindSetRef.current(props);
+      _pinnedComindSetRef.current(props);
 
       // Guardar vista actual antes de volar, para restaurarla al cerrar
-      prevMapViewRef.current = {
+      _prevMapViewRef.current = {
         center: map.getCenter(),
         zoom: map.getZoom(),
         bearing: map.getBearing(),
@@ -1354,7 +1427,7 @@ const routeIdCounter = useRef(0);
 
         // Tras el vuelo: contar asentamientos y obtener mayor Población
         const runQuery = () => {
-          if (pinnedComindIdRef.current !== comId) return;
+          if (_pinnedComindIdRef.current !== comId) return;
           const rawAsent = map.querySourceFeatures("asentamientos", { sourceLayer: "asent_com_inpi_tile" });
           const seen = new Set<string>();
           let maxPob = 0;
@@ -1366,7 +1439,7 @@ const routeIdCounter = useRef(0);
             const pob = Number(String(f.properties?.Población ?? "0").replace(/,/g, ""));
             if (pob > maxPob) maxPob = pob;
           });
-          pinnedComindSetRef.current(prev =>
+          _pinnedComindSetRef.current(prev =>
             prev ? { ...prev, _asentCount: seen.size, _pobtot: maxPob > 0 ? maxPob : null } : null
           );
         };
@@ -1384,19 +1457,13 @@ const routeIdCounter = useRef(0);
       { id: "zonatam",     label: "Tampico-Misantla",   color: "#3D5AFE", glow: "rgba(61,90,254,0.4)" },
       { id: "zonaver",     label: "Veracruz",           color: "#00F5FF", glow: "rgba(0,245,255,0.4)" },
     ];
-    const getZonaHTML = (p: any, color: string, glow: string, label: string) =>
-      `<div style="background:#0a0e1a;border:1px solid ${color};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${glow}">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}"></span>` +
-      `<strong style="color:${color};font-size:12px;letter-spacing:0.3px;opacity:0.75">Zona ${label}</strong>` +
-      `</div>` +
-      `<div style="display:grid; 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Nombre del Campo: </span><span style="font-weight:500">${p.campo ?? p.Campo ?? "—"}</span>` +
-      `<span style="color:#7f849c">Tipo de Pozo: </span><span>${p.pozo ?? p.Pozo ?? "—"}</span>` +
-      `<span style="color:#7f849c">Entidad: </span><span>${p.entidad ?? p.Entidad ?? "—"}</span>` +
-      `<span style="color:#7f849c">Ubicación: </span><span>${p.ubicacin ?? p.ubicacion ?? "—"}</span>` +
-      `</div>` +
-      `</div>`;
+    const getZonaHTML = (p: any, color: string, _glow: string, label: string) =>
+      tc(color, `Zona ${label}`, [
+        ["Campo",    p.campo ?? p.Campo ?? "—"],
+        ["Tipo Pozo", p.pozo ?? p.Pozo ?? "—"],
+        ["Entidad",  p.entidad ?? p.Entidad ?? "—"],
+        ["Ubicación", p.ubicacin ?? p.ubicacion ?? "—"],
+      ]);
     zonaLayers.forEach(({ id, label, color, glow }) => {
       map.on("mouseenter", id, () => {
         if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
@@ -1413,15 +1480,8 @@ const routeIdCounter = useRef(0);
     });
 
     /*== Tooltip oscuro para Territorios Pueblos Indígenas (fill layer) ==*/
-    const getTerrpiHTML = (p: any) => {
-      const nombre = p.pueblo ?? p.Pueblo ?? p.PUEBLO ?? p.nombre ?? "—";
-      return `<div style="background:#0f1117;border:1px solid #FF00E5;border-radius:8px;padding:11px 14px;min-width:160px;box-shadow:0 4px 20px rgba(255,0,229,0.35)">` +
-        `<div style="display:flex;align-items:center;gap:8px">` +
-        `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#FF00E5;box-shadow:0 0 6px #FF00E5;flex-shrink:0"></span>` +
-        `<strong style="color:#f48fb1;font-size:12.5px;letter-spacing:0.2px">${nombre}</strong>` +
-        `</div>` +
-        `</div>`;
-    };
+    const getTerrpiHTML = (p: any) =>
+      tc("#FF00E5", p.pueblo ?? p.Pueblo ?? p.PUEBLO ?? p.nombre ?? "—", []);
     map.on("mouseenter", "territoriospi", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
     });
@@ -1470,29 +1530,22 @@ const routeIdCounter = useRef(0);
 
     const getLocHTML = (p: any, pinned = false) => {
       const nombre = p.NOM_COM ?? p.NOM_LOC ?? p.nombre ?? "—";
-      const closeBtn = pinned
-        ? `<button onclick="window.__closePinnedLoc&&window.__closePinnedLoc()" style="position:absolute;top:8px;right:8px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:13px;font-weight:bold;line-height:20px;text-align:center;padding:0">✕</button>`
-        : "";
-      return (
-        `<div style="position:relative;background:#0f1117;border:1px solid ${color_loc};border-radius:8px;padding:12px ${pinned ? "32px" : "14px"} 12px 14px;min-width:200px;box-shadow:0 4px 20px rgba(236,61,184,0.35)">` +
-        closeBtn +
-        `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-        `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color_loc};box-shadow:0 0 6px ${color_loc}"></span>` +
-        `<strong style="color:#f48fb1;font-size:13px;letter-spacing:0.3px">${nombre}</strong>` +
-        `</div>` +
-        `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-        `<span style="color:#7f849c">Estado</span><span>${p.NOM_ENT ?? "—"}</span>` +
-        `<span style="color:#7f849c">Municipio</span><span>${p.NOM_MUN ?? "—"}</span>` +
-        `<span style="color:#7f849c">Pueblo</span><span>${p.Pueblo ?? p.pueblo ?? "—"}</span>` +
-        `<span style="color:#f48fb1;font-weight:600">Pob. total</span><span style="color:#f48fb1;font-weight:600">${p.POBTOT != null ? Number(p.POBTOT).toLocaleString("es-MX") : "—"}</span>` +
-        `</div></div>`
-      );
+      const base = tc(color_loc, nombre, [
+        ["Estado",    p.NOM_ENT ?? "—"],
+        ["Municipio", p.NOM_MUN ?? "—"],
+        ["Pueblo",    p.Pueblo ?? p.pueblo ?? "—"],
+        ["Pob. total", p.POBTOT != null ? Number(p.POBTOT).toLocaleString("es-MX") : "—", color_loc],
+      ]);
+      if (!pinned) return base;
+      return `<div style="position:relative">${base}` +
+        `<button onclick="window.__closePinnedLoc&&window.__closePinnedLoc()" ` +
+        `style="position:absolute;top:6px;right:6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;font-weight:bold;line-height:18px;text-align:center;padding:0">✕</button></div>`;
     };
 
     const startAsentPulse = () => {
-      if (asentPulseId.current) cancelAnimationFrame(asentPulseId.current);
+      if (_asentPulseId.current) cancelAnimationFrame(_asentPulseId.current);
       const animate = (time: number) => {
-        asentPulseId.current = requestAnimationFrame(animate);
+        _asentPulseId.current = requestAnimationFrame(animate);
         const t = (Math.sin(time / 500) + 1) / 2;
         try {
           if (map.getLayer("asentamientos-highlight")) {
@@ -1501,13 +1554,13 @@ const routeIdCounter = useRef(0);
           }
         } catch {}
       };
-      asentPulseId.current = requestAnimationFrame(animate);
+      _asentPulseId.current = requestAnimationFrame(animate);
     };
 
     const stopAsentPulse = () => {
-      if (asentPulseId.current) {
-        cancelAnimationFrame(asentPulseId.current);
-        asentPulseId.current = null;
+      if (_asentPulseId.current) {
+        cancelAnimationFrame(_asentPulseId.current);
+        _asentPulseId.current = null;
       }
       try {
         if (map.getLayer("asentamientos-highlight")) {
@@ -1534,14 +1587,14 @@ const routeIdCounter = useRef(0);
     };
 
     const unpinLoc = () => {
-      pinnedPuebloIdRef.current = null;
+      _pinnedPuebloIdRef.current = null;
       pinnedLocPopup.remove();
       clearLocHighlight();
       (window as any).__closePinnedLoc = undefined;
     };
 
     pinnedLocPopup.on("close", () => {
-      pinnedPuebloIdRef.current = null;
+      _pinnedPuebloIdRef.current = null;
       clearLocHighlight();
       (window as any).__closePinnedLoc = undefined;
     });
@@ -1551,7 +1604,7 @@ const routeIdCounter = useRef(0);
     });
     map.on("mousemove", "LocalidadesSedeINPI", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
       if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      if (pinnedPuebloIdRef.current != null) return; // hay un pin activo, no sobreescribir
+      if (_pinnedPuebloIdRef.current != null) return; // hay un pin activo, no sobreescribir
       const f = e.features[0] as any;
       const props = f.properties;
       if (!props) return;
@@ -1559,7 +1612,7 @@ const routeIdCounter = useRef(0);
       setLocHighlight(f.geometry, props.ID_Pueblo ?? null);
     });
     map.on("mouseleave", "LocalidadesSedeINPI", () => {
-      if (checkMeasurement() || pinnedPuebloIdRef.current != null) return;
+      if (checkMeasurement() || _pinnedPuebloIdRef.current != null) return;
       map.getCanvas().style.cursor = "";
       tooltipManager.hide("LocalidadesSedeINPI");
       clearLocHighlight();
@@ -1570,11 +1623,11 @@ const routeIdCounter = useRef(0);
       const props = f.properties;
       if (!props) return;
       const idPueblo = props.ID_Pueblo ?? null;
-      if (pinnedPuebloIdRef.current === idPueblo) {
+      if (_pinnedPuebloIdRef.current === idPueblo) {
         // segundo click en el mismo: desanclar
         unpinLoc();
       } else {
-        pinnedPuebloIdRef.current = idPueblo;
+        _pinnedPuebloIdRef.current = idPueblo;
         tooltipManager.hide("LocalidadesSedeINPI");
         (window as any).__closePinnedLoc = unpinLoc;
         pinnedLocPopup.setLngLat(e.lngLat).setHTML(getLocHTML(props, true)).addTo(map);
@@ -1598,16 +1651,11 @@ const routeIdCounter = useRef(0);
       veracruz: "#AED581", vizcaino_purisima_iray: "#81C784",
     };
     const getProvinciaHTML = (p: any, color: string) =>
-      `<div style="background:#0f1117;border:1px solid ${color};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${color}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}"></span>` +
-      `<strong style="color:${color};font-size:13px;letter-spacing:0.3px">${p.nombre ?? p.NOMBRE ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Situación</span><span>${p.situacin ?? p.situacion ?? p.situación ?? "—"}</span>` +
-      `<span style="color:#7f849c">Ubicación</span><span>${p.ubicacin ?? p.ubicacion ?? p.ubicación ?? "—"}</span>` +
-      `<span style="color:#7f849c">Área km²</span><span style="color:${color};font-weight:600">${p.rea_km2 != null ? Number(p.rea_km2).toLocaleString("es-MX", { maximumFractionDigits: 0 }) : "—"}</span>` +
-      `</div></div>`;
+      tc(color, p.nombre ?? p.NOMBRE ?? "—", [
+        ["Situación", p.situacin ?? p.situacion ?? p.situación ?? "—"],
+        ["Ubicación", p.ubicacin ?? p.ubicacion ?? p.ubicación ?? "—"],
+        ["Área km²", p.rea_km2 != null ? Number(p.rea_km2).toLocaleString("es-MX", { maximumFractionDigits: 0 }) : "—", color],
+      ]);
 
     [
       "burgos", "chihuahua", "cinturon_plegado_chiapas", "cinturon_plegado_smo",
@@ -1645,19 +1693,12 @@ const routeIdCounter = useRef(0);
       diputados_pt:     "PT",
     };
     const getDiputadoHTML = (p: any, color: string, partido: string) =>
-      `<div style="background:#0f1117;border:1px solid ${color};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${color}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}"></span>` +
-      `<strong style="color:${color};font-size:12px;letter-spacing:0.3px">${partido}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Diputado/a:</span><span style="font-weight:500">${p.Diputado ?? p.diputado ?? p.Nombre ?? p.nombre ?? "—"}</span>` +
-      `<span style="color:#7f849c">Grupo Parlamentario:</span><span>${p.Grupo_Parlamentario ?? p.grupo_parlamentario ?? "—"}</span>` +
-      `<span style="color:#7f849c">Entidad:</span><span>${p.Entidad ?? p.entidad ?? p.NOM_ENT ?? "—"}</span>` +
-      `<span style="color:#7f849c">Distrito</span><span>${p.Distrito ?? p.distrito ?? p.DISTRITO ?? "—"}</span>` +
-      // `<span style="color:#7f849c">No. Pozos No Convencionales:</span><span>${p.Número_de_nuevos_pozos_no_conve!= null ? Number(p.Numero_de_nuevos_pozos_no_conve).toLocaleString("es-MX") : "—"}</span>` +
-      // `<span style="color:#7f849c">De no prohibirse el Fracking:</span><span>${p.De_no_prohibirse_el_fracking_en ?? p.De_no_prohibirse_el_fracking_1 ?? "—"}</span>` +
-      `</div></div>`;
+      tc(color, partido, [
+        ["Diputado/a",  p.Diputado ?? p.diputado ?? p.Nombre ?? p.nombre ?? "—"],
+        ["Grupo",       p.Grupo_Parlamentario ?? p.grupo_parlamentario ?? "—"],
+        ["Entidad",     p.Entidad ?? p.entidad ?? p.NOM_ENT ?? "—"],
+        ["Distrito",    p.Distrito ?? p.distrito ?? p.DISTRITO ?? "—"],
+      ]);
 
     ["diputados_morena", "diputados_pri", "diputados_pan", "diputados_pvem", "diputados_pt"].forEach((layerId) => {
       const color = diputadosTooltipColores[layerId];
@@ -1686,15 +1727,10 @@ const routeIdCounter = useRef(0);
       riesgohim: "#F9A825", riesgohib: "#388E3C",
     };
     const getRiesgoHTML = (p: any, color: string) =>
-      `<div style="background:#0f1117;border:1px solid ${color};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${color}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}"></span>` +
-      `<strong style="color:${color};font-size:13px;letter-spacing:0.3px">${p.RiesgoHídrico ?? p.RiesgoHidrico ?? p["RiesgoHídrico"] ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Provincia</span><span>${p.Provincia ?? "—"}</span>` +
-      `<span style="color:#7f849c">Entidad</span><span>${p.Entidad_1 ?? p.Entidad ?? "—"}</span>` +
-      `</div></div>`;
+      tc(color, p.RiesgoHídrico ?? p.RiesgoHidrico ?? p["RiesgoHídrico"] ?? "—", [
+        ["Provincia", p.Provincia ?? "—"],
+        ["Entidad",   p.Entidad_1 ?? p.Entidad ?? "—"],
+      ]);
 
     ["riesgohic", "riesgohia", "riesgohim", "riesgohib"].forEach((layerId) => {
       const color = riesgoColores[layerId];
@@ -1717,22 +1753,17 @@ const routeIdCounter = useRef(0);
       pozosi: "#FF6D00", pozosp: "#1e5b4f", pozoss: "#FFC107",
     };
     const getPozoHTML = (p: any, color: string) =>
-      `<div style="background:#0f1117;border:1px solid ${color};border-radius:8px;padding:12px 14px;min-width:220px;box-shadow:0 4px 20px ${color}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}"></span>` +
-      `<strong style="color:${color};font-size:13px;letter-spacing:0.3px">${p.pozo ?? p.Pozo ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Campo</span><span>${p.campo ?? p.Campo ?? "—"}</span>` +
-      `<span style="color:#7f849c">Entidad</span><span>${p.entidad ?? p.Entidad ?? "—"}</span>` +
-      `<span style="color:#7f849c">Clasificación</span><span>${p.clasificac ?? "—"}</span>` +
-      `<span style="color:#7f849c">Estado</span><span style="color:${color};font-weight:600">${p.estado_act ?? "—"}</span>` +
-      `<span style="color:#7f849c">Tipo hidrocarb.</span><span>${p.tipo_de_hi ?? "—"}</span>` +
-      `<span style="color:#7f849c">Profundidad</span><span>${p.profundida != null ? Number(p.profundida).toLocaleString("es-MX") + " mts" : "—"}</span>` +
-      `<span style="color:#7f849c">Trayectoria</span><span>${p.trayectori ?? "—"}</span>` +
-      `<span style="color:#7f849c">Zona</span><span>${p.Zona ?? p.zona ?? "—"}</span>` +
-      `<span style="color:#7f849c">Fracturamiento</span><span>${p.Fracturami ?? p.fracturami ?? "—"}</span>` +
-      `</div></div>`;
+      tc(color, p.pozo ?? p.Pozo ?? "—", [
+        ["Campo",          p.campo ?? p.Campo ?? "—"],
+        ["Entidad",        p.entidad ?? p.Entidad ?? "—"],
+        ["Clasificación",  p.clasificac ?? "—"],
+        ["Estado",         p.estado_act ?? "—", color],
+        ["Tipo",           p.tipo_de_hi ?? "—"],
+        ["Profundidad",    p.profundida != null ? Number(p.profundida).toLocaleString("es-MX") + " m" : "—"],
+        ["Trayectoria",    p.trayectori ?? "—"],
+        ["Zona",           p.Zona ?? p.zona ?? "—"],
+        ["Fracturamiento", p.Fracturami ?? p.fracturami ?? "—"],
+      ]);
 
     ["pozosap", "pozosc", "pozosi", "pozosp", "pozoss"].forEach((layerId) => {
       const color = pozosColores[layerId];
@@ -1753,14 +1784,9 @@ const routeIdCounter = useRef(0);
     /*== Tooltip Áreas Potenciales No Convencionales ==*/
     const color_areas = "#FFAB40";
     const getAreasHTML = (p: any) =>
-      `<div style="background:#0f1117;border:1px solid ${color_areas};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${color_areas}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color_areas};box-shadow:0 0 6px ${color_areas}"></span>` +
-      `<strong style="color:${color_areas};font-size:13px;letter-spacing:0.3px">${p.Provincia ?? p.provincia ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Hectáreas</span><span style="color:${color_areas};font-weight:600">${p.Ha != null ? Number(p.Ha).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ha" : "—"}</span>` +
-      `</div></div>`;
+      tc(color_areas, p.Provincia ?? p.provincia ?? "—", [
+        ["Hectáreas", p.Ha != null ? Number(p.Ha).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ha" : "—", color_areas],
+      ]);
     map.on("mouseenter", "areaspotnc", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
     });
@@ -1778,15 +1804,10 @@ const routeIdCounter = useRef(0);
       camposresas: "#52c0ff", camposresm: "#3d1aff", camposrest: "#00a808",
     };
     const getCamposresHTML = (p: any, color: string) =>
-      `<div style="background:#0f1117;border:1px solid ${color};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${color}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color}"></span>` +
-      `<strong style="color:${color};font-size:13px;letter-spacing:0.3px">${p.nombre ?? p.Nombre ?? p.NOMBRE ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Ubicación</span><span>${p.ubicacin ?? p.ubicacion ?? p.Ubicacion ?? "—"}</span>` +
-      `<span style="color:#7f849c">Superficie</span><span style="color:${color};font-weight:600">${p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—"}</span>` +
-      `</div></div>`;
+      tc(color, p.nombre ?? p.Nombre ?? p.NOMBRE ?? "—", [
+        ["Ubicación",  p.ubicacin ?? p.ubicacion ?? p.Ubicacion ?? "—"],
+        ["Superficie", p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—", color],
+      ]);
 
     ["camposresas", "camposresm", "camposrest"].forEach((layerId) => {
       const color = camposresColores[layerId];
@@ -1807,16 +1828,11 @@ const routeIdCounter = useRef(0);
     /*== Tooltip + hover Áreas Naturales Protegidas ==*/
     const color_anp = "#AEEA00";
     const getAnpHTML = (p: any) =>
-      `<div style="background:#0f1117;border:1px solid ${color_anp};border-radius:8px;padding:12px 14px;min-width:220px;box-shadow:0 4px 20px ${color_anp}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color_anp};box-shadow:0 0 6px ${color_anp}"></span>` +
-      `<strong style="color:${color_anp};font-size:13px;letter-spacing:0.3px">${p.nombre ?? p.Nombre ?? p.NOMBRE ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Estado</span><span>${p.estado ?? p.Estado ?? "—"}</span>` +
-      `<span style="color:#7f849c">Región</span><span>${p.regin ?? p.region ?? p.Region ?? p.región ?? "—"}</span>` +
-      `<span style="color:#7f849c">Superficie</span><span style="color:${color_anp};font-weight:600">${p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—"}</span>` +
-      `</div></div>`;
+      tc(color_anp, p.nombre ?? p.Nombre ?? p.NOMBRE ?? "—", [
+        ["Estado",     p.estado ?? p.Estado ?? "—"],
+        ["Región",     p.regin ?? p.region ?? p.Region ?? p.región ?? "—"],
+        ["Superficie", p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—", color_anp],
+      ]);
     map.on("mouseenter", "anp", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
     });
@@ -1833,17 +1849,12 @@ const routeIdCounter = useRef(0);
     /*== Tooltip Asentamientos Humanos (INPI) ==*/
     const color_asent = "#ad4000";
     const getAsentHTML = (p: any) =>
-      `<div style="background:#0f1117;border:1px solid ${color_asent};border-radius:8px;padding:12px 14px;min-width:200px;box-shadow:0 4px 20px rgba(255,118,38,0.35)">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color_asent};box-shadow:0 0 6px ${color_asent}"></span>` +
-      `<strong style="color:#ffb380;font-size:13px">${p.Nombre ?? p.Localidad ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Categoría</span><span>${p["Categoría"] ?? p.Categoria ?? "—"}</span>` +
-      `<span style="color:#7f849c">Municipio</span><span>${p.Municipio ?? "—"}</span>` +
-      `<span style="color:#7f849c">Estado</span><span>${p["Entidad fe"] ?? "—"}</span>` +
-      `<span style="color:${color_asent};font-weight:600">Población</span><span style="color:${color_asent};font-weight:600">${p["Población"] ?? p.Poblacion ?? "—"}</span>` +
-      `</div></div>`;
+      tc(color_asent, p.Nombre ?? p.Localidad ?? "—", [
+        ["Categoría",  p["Categoría"] ?? p.Categoria ?? "—"],
+        ["Municipio",  p.Municipio ?? "—"],
+        ["Estado",     p["Entidad fe"] ?? "—"],
+        ["Población",  p["Población"] ?? p.Poblacion ?? "—", color_asent],
+      ]);
     map.on("mouseenter", "asentamientos", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
     });
@@ -1921,16 +1932,11 @@ const routeIdCounter = useRef(0);
     /*== Tooltip Zonas Culturales / Arqueológicas (INAH) ==*/
     const color_cult = "#FFD740";
     const getCultHTML = (p: any) =>
-      `<div style="background:#0f1117;border:1px solid ${color_cult};border-radius:8px;padding:12px 14px;min-width:210px;box-shadow:0 4px 20px ${color_cult}55">` +
-      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">` +
-      `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color_cult};box-shadow:0 0 6px ${color_cult}"></span>` +
-      `<strong style="color:${color_cult};font-size:13px;letter-spacing:0.3px">${p.nombre ?? p.Nombre ?? "—"}</strong>` +
-      `</div>` +
-      `<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11.5px;color:#cdd6f4">` +
-      `<span style="color:#7f849c">Estado</span><span>${p.nom_ent ?? p.NOM_ENT ?? "—"}</span>` +
-      `<span style="color:#7f849c">Municipio</span><span>${p.nom_mun ?? p.NOM_MUN ?? "—"}</span>` +
-      `<span style="color:#7f849c">Localización</span><span>${p.localizacion ?? p.Localizacion ?? p.localización ?? "—"}</span>` +
-      `</div></div>`;
+      tc(color_cult, p.nombre ?? p.Nombre ?? "—", [
+        ["Estado",       p.nom_ent ?? p.NOM_ENT ?? "—"],
+        ["Municipio",    p.nom_mun ?? p.NOM_MUN ?? "—"],
+        ["Localización", p.localizacion ?? p.Localizacion ?? p.localización ?? "—"],
+      ]);
     map.on("mouseenter", "zonascult", () => {
       if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
     });
@@ -2374,6 +2380,7 @@ const routeIdCounter = useRef(0);
       map2.once("styledata", () => {
         addVectorLayers(map2);
         applyPanel2State(map2);
+        attachAllTooltipEvents(map2, { isMeasuringRef: isMeasuringRef2, isMeasuringLineRef: isMeasuringLineRef2, pinnedPuebloIdRef: pinnedPuebloIdRef2, pinnedComindIdRef: pinnedComindIdRef2, pinnedComindSetRef: pinnedComindSetRef2, prevMapViewRef: prevMapViewRef2, asentPulseId: asentPulseId2 });
         map2.jumpTo({ center: currentCenter, zoom: currentZoom, bearing: currentBearing, pitch: 0 });
         setTimeout(() => applyOrRemove3DEffects(map2, newIs3D, isSatellite2), 200);
       });
@@ -2397,6 +2404,7 @@ const routeIdCounter = useRef(0);
     map2.once("styledata", () => {
       addVectorLayers(map2);
       applyPanel2State(map2);
+      attachAllTooltipEvents(map2, { isMeasuringRef: isMeasuringRef2, isMeasuringLineRef: isMeasuringLineRef2, pinnedPuebloIdRef: pinnedPuebloIdRef2, pinnedComindIdRef: pinnedComindIdRef2, pinnedComindSetRef: pinnedComindSetRef2, prevMapViewRef: prevMapViewRef2, asentPulseId: asentPulseId2 });
       routesData2.forEach((r) => drawSingleRouteOnMap(map2, r));
       linesData2.forEach((l) => drawSingleLineOnMap(map2, l));
       map2.jumpTo({ center: currentCenter, zoom: currentZoom, bearing: currentBearing, pitch: currentPitch });
@@ -2740,10 +2748,6 @@ const routeIdCounter = useRef(0);
 
     const protocol = new Protocol();
     maplibregl.addProtocol("pmtiles", protocol.tile);
-    const mexicoBounds: [LngLatLike, LngLatLike] = [
-    [-137.82575, 7.10986], 
-    [-65.55923, 34.86389]
-    ];
 
     const map = new maplibregl.Map({
       container,
@@ -3007,6 +3011,11 @@ const routeIdCounter = useRef(0);
             if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
           });
         }
+        if (id === "ent") {
+          ["ent-click-border", "ent-border"].forEach((sub) => {
+            if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
+          });
+        }
         if (id === "camposres_comind") {
           ["camposres_comind-halo", "camposres_comind-pulse"].forEach((sub) => {
             if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
@@ -3023,10 +3032,35 @@ const routeIdCounter = useRef(0);
           map2.setLayoutProperty("afect_buffer20m-fill", "visibility", vis);
       } catch {}
     });
+    // Capas de utilidad siempre al frente
+    [
+      "ent-click-border",
+      "hover-polygon-fill", "hover-polygon-stroke",
+      "hover-point-glow", "hover-point",
+      "asentamientos-highlight", "asentamientos-labels",
+      "asentamientos-comind-dots", "asentamientos-comind-labels",
+    ].forEach((sub) => {
+      try { if (map2.getLayer(sub)) map2.moveLayer(sub); } catch {}
+    });
+    ["camposres_comind-halo", "camposres_comind-pulse", "camposres_comind"].forEach((sub) => {
+      try { if (map2.getLayer(sub)) map2.moveLayer(sub); } catch {}
+    });
+    // Opacidad — misma lógica que Panel 1 (ent/mun usan feature-state)
     Object.entries(opa2Ref.current).forEach(([id, opacity]) => {
       const prop = layerOpacityProp[id];
       if (!prop) return;
-      try { if (map2.getLayer(id)) map2.setPaintProperty(id, prop, opacity); } catch {}
+      try {
+        if (!map2.getLayer(id)) return;
+        if (id === "ent" || id === "mun") {
+          const hoverOpacity = Math.min(opacity * 8, 1);
+          const expr = id === "mun"
+            ? ["case", ["boolean", ["feature-state", "clicked"], false], 0.3, 0]
+            : ["case", ["boolean", ["feature-state", "hover"], false], hoverOpacity, opacity * 0.1];
+          map2.setPaintProperty(id, "fill-opacity", expr as any);
+        } else {
+          map2.setPaintProperty(id, prop, opacity);
+        }
+      } catch {}
     });
   };
 
@@ -3054,15 +3088,16 @@ const routeIdCounter = useRef(0);
     setIsSatellite2(currentIsSat);
     setIs3D2(currentIs3D);
 
+    const map1 = mapRef.current;
     const map2 = new maplibregl.Map({
       container: container2Ref.current,
       style: getStyleUrl(currentIsSat, currentIs3D, isDark),
-      center: [-101.28044, 23.65978],
-      zoom: 4.73,
-      pitch: 0,
-      bearing: 0,
+      center: map1 ? map1.getCenter() : [-101.28044, 23.65978],
+      zoom:   map1 ? map1.getZoom()   : 4.73,
+      pitch:  map1 ? map1.getPitch()  : 0,
+      bearing: map1 ? map1.getBearing() : 0,
       attributionControl: false,
-      maxBounds: [[-121, 14], [-84, 33.5]],
+      maxBounds: mexicoBounds,
       maxPitch: 85,
     });
     map2Ref.current = map2;
@@ -3070,6 +3105,7 @@ const routeIdCounter = useRef(0);
     map2.on("load", () => {
       addVectorLayers(map2);
       applyPanel2State(map2);
+      attachAllTooltipEvents(map2, { isMeasuringRef: isMeasuringRef2, isMeasuringLineRef: isMeasuringLineRef2, pinnedPuebloIdRef: pinnedPuebloIdRef2, pinnedComindIdRef: pinnedComindIdRef2, pinnedComindSetRef: pinnedComindSetRef2, prevMapViewRef: prevMapViewRef2, asentPulseId: asentPulseId2 });
     });
 
     map2.on("rotate", () => setDisplayBearing2(map2.getBearing()));
@@ -3087,15 +3123,22 @@ const routeIdCounter = useRef(0);
     if (!map2) return;
     const url = getStyleUrl(isSatellite2, is3D2, isDark);
     map2.setStyle(url, { diff: false });
-    map2.once("styledata", () => {
+    let tid: ReturnType<typeof setTimeout> | null = null;
+    const onStyle = () => {
       addVectorLayers(map2);
       applyPanel2State(map2);
-      if (is3D2) setTimeout(() => applyOrRemove3DEffects(map2, true, isSatellite2), 200);
-    });
+      attachAllTooltipEvents(map2, { isMeasuringRef: isMeasuringRef2, isMeasuringLineRef: isMeasuringLineRef2, pinnedPuebloIdRef: pinnedPuebloIdRef2, pinnedComindIdRef: pinnedComindIdRef2, pinnedComindSetRef: pinnedComindSetRef2, prevMapViewRef: prevMapViewRef2, asentPulseId: asentPulseId2 });
+      if (is3D2) tid = setTimeout(() => applyOrRemove3DEffects(map2, true, isSatellite2), 200);
+    };
+    map2.once("styledata", onStyle);
+    return () => {
+      map2.off("styledata", onStyle);
+      if (tid !== null) clearTimeout(tid);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDark]);
 
-  /*== Panel 2 — visibilidad → map2 ==*/
+  /*== Panel 2 — visibilidad → map2 (espejo exacto de updateLayerVisibility) ==*/
   useEffect(() => {
     const map2 = map2Ref.current;
     if (!map2) return;
@@ -3109,19 +3152,46 @@ const routeIdCounter = useRef(0);
               if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
             });
           }
+          if (id === "ent") {
+            ["ent-click-border", "ent-border"].forEach((sub) => {
+              if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
+            });
+          }
           if (id === "camposres_comind") {
             ["camposres_comind-halo", "camposres_comind-pulse"].forEach((sub) => {
               if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
             });
           }
+          if (id === "LocalidadesSedeINPI") {
+            ["LocalidadesSedeINPI-halo", "LocalidadesSedeINPI-pulse"].forEach((sub) => {
+              if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
+            });
+          }
+          if (id === "buffer20m" && map2.getLayer("buffer20m-fill"))
+            map2.setLayoutProperty("buffer20m-fill", "visibility", vis);
+          if (id === "afect_buffer20m" && map2.getLayer("afect_buffer20m-fill"))
+            map2.setLayoutProperty("afect_buffer20m-fill", "visibility", vis);
         } catch {}
+      });
+      // Capas de utilidad siempre al frente
+      [
+        "ent-click-border",
+        "hover-polygon-fill", "hover-polygon-stroke",
+        "hover-point-glow", "hover-point",
+        "asentamientos-highlight", "asentamientos-labels",
+        "asentamientos-comind-dots", "asentamientos-comind-labels",
+      ].forEach((sub) => {
+        try { if (map2.getLayer(sub)) map2.moveLayer(sub); } catch {}
+      });
+      ["camposres_comind-halo", "camposres_comind-pulse", "camposres_comind"].forEach((sub) => {
+        try { if (map2.getLayer(sub)) map2.moveLayer(sub); } catch {}
       });
     };
     if (map2.isStyleLoaded()) apply();
     else map2.once("styledata", apply);
   }, [layersVisibility2]);
 
-  /*== Panel 2 — opacidad → map2 ==*/
+  /*== Panel 2 — opacidad → map2 (espejo exacto de Panel 1, con feature-state para ent/mun) ==*/
   useEffect(() => {
     const map2 = map2Ref.current;
     if (!map2) return;
@@ -3129,7 +3199,18 @@ const routeIdCounter = useRef(0);
       Object.entries(layersOpacity2).forEach(([id, opacity]) => {
         const prop = layerOpacityProp[id];
         if (!prop) return;
-        try { if (map2.getLayer(id)) map2.setPaintProperty(id, prop, opacity); } catch {}
+        try {
+          if (!map2.getLayer(id)) return;
+          if (id === "ent" || id === "mun") {
+            const hoverOpacity = Math.min(opacity * 8, 1);
+            const expr = id === "mun"
+              ? ["case", ["boolean", ["feature-state", "clicked"], false], 0.3, 0]
+              : ["case", ["boolean", ["feature-state", "hover"], false], hoverOpacity, opacity * 0.1];
+            map2.setPaintProperty(id, "fill-opacity", expr as any);
+          } else {
+            map2.setPaintProperty(id, prop, opacity);
+          }
+        } catch {}
       });
     };
     if (map2.isStyleLoaded()) apply();
@@ -3537,6 +3618,63 @@ const routeIdCounter = useRef(0);
             <span style={{ color: "#7f849c" }}>Asentamientos</span>
             <span style={{ color: "#ff7626", fontWeight: 700 }}>
               {pinnedComindData._asentCount != null ? pinnedComindData._asentCount : "…"}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Panel 2 — comunidad indígena en campo de reserva */}
+      {splitActive && pinnedComindData2 && (
+        <div style={{
+          position: "absolute",
+          top: "20px",
+          right: "70px",
+          zIndex: 25,
+          background: "#0f1117",
+          border: "1px solid #D50000",
+          borderRadius: "8px",
+          padding: "12px 14px",
+          minWidth: "210px",
+          maxWidth: "265px",
+          boxShadow: "0 4px 20px rgba(213,0,0,0.35)",
+          pointerEvents: "all",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ flexShrink: 0, width: 10, height: 10, borderRadius: "50%", background: "#D50000", boxShadow: "0 0 6px #D50000", display: "inline-block" }} />
+              <strong style={{ color: "#ff5252", fontSize: 13, lineHeight: 1.3 }}>{pinnedComindData2.NOM_COM ?? "—"}</strong>
+            </div>
+            <button
+              onClick={() => {
+                setPinnedComindData2(null);
+                pinnedComindIdRef2.current = null;
+                const m = map2Ref.current;
+                if (m) {
+                  if (m.getLayer("asentamientos-comind-dots")) m.setFilter("asentamientos-comind-dots", ["==", ["literal", 1], 0]);
+                  if (m.getLayer("asentamientos-comind-labels")) m.setFilter("asentamientos-comind-labels", ["==", ["literal", 1], 0]);
+                  if (prevMapViewRef2.current) {
+                    m.flyTo({ ...prevMapViewRef2.current, duration: 800 });
+                    prevMapViewRef2.current = null;
+                  }
+                }
+              }}
+              style={{ background: "none", border: "none", color: "#D50000", fontSize: 20, lineHeight: 1, cursor: "pointer", padding: "0 0 0 8px", flexShrink: 0 }}
+              title="Cerrar"
+            >×</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "3px 10px", fontSize: 11.5, color: "#cdd6f4" }}>
+            <span style={{ color: "#7f849c" }}>Estado</span><span>{pinnedComindData2.NOM_ENT ?? "—"}</span>
+            <span style={{ color: "#7f849c" }}>Municipio</span><span>{pinnedComindData2.NOM_MUN ?? "—"}</span>
+            <span style={{ color: "#7f849c" }}>Pueblo</span><span>{pinnedComindData2.Pueblo ?? "—"}</span>
+            <span style={{ color: "#7f849c" }}>Pob. total</span>
+            <span style={{ color: "#ff8a80", fontWeight: 600 }}>
+              {pinnedComindData2._pobtot != null
+                ? Number(String(pinnedComindData2._pobtot).replace(/,/g, "")).toLocaleString("es-MX")
+                : "…"}
+            </span>
+            <span style={{ color: "#7f849c" }}>Asentamientos</span>
+            <span style={{ color: "#ff7626", fontWeight: 700 }}>
+              {pinnedComindData2._asentCount != null ? pinnedComindData2._asentCount : "…"}
             </span>
           </div>
         </div>
