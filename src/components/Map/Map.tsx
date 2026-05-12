@@ -2358,6 +2358,24 @@ const routeIdCounter = useRef(0);
     });
   };
 
+  const toggleMeasurement2 = () => {
+    const wasMeasuring = isMeasuring2;
+    setIsMeasuring2(!wasMeasuring);
+    setIsMeasuringLine2(false);
+    if (wasMeasuring) clearAllRoutes2();
+    setCurrentPoints2([]);
+    setCurrentLinePoints2([]);
+  };
+
+  const toggleLineMeasurement2 = () => {
+    const wasMeasuringLine = isMeasuringLine2;
+    setIsMeasuringLine2(!wasMeasuringLine);
+    setIsMeasuring2(false);
+    if (wasMeasuringLine) clearAllRoutes2();
+    setCurrentPoints2([]);
+    setCurrentLinePoints2([]);
+  };
+
   const resetNorth2 = () => {
     const map2 = map2Ref.current;
     if (!map2) return;
@@ -2415,32 +2433,41 @@ const routeIdCounter = useRef(0);
   const clearCurrentPoints2 = useCallback(() => {
     const map2 = map2Ref.current;
     if (!map2) return;
-    ["start-point-2-current","start-point-2-current-pulse","end-point-2-current","end-point-2-current-pulse",
-     "start-point-2-line-current","start-point-2-line-current-pulse","end-point-2-current","end-point-2-current-pulse"]
-      .forEach((id) => { try { if (map2.getLayer(id)) map2.removeLayer(id); } catch {} });
-    ["start-point-2-current","end-point-2-current","start-point-2-line-current","end-point-2-line-current"]
-      .forEach((id) => { try { if (map2.getSource(id)) map2.removeSource(id); } catch {} });
+    [
+      "start-point-2-current", "start-point-2-current-pulse",
+      "end-point-2-current",   "end-point-2-current-pulse",
+      "start-point-2-line-current", "start-point-2-line-current-pulse",
+      "end-point-2-line-current",   "end-point-2-line-current-pulse",
+    ].forEach((id) => { try { if (map2.getLayer(id)) map2.removeLayer(id); } catch {} });
+    [
+      "start-point-2-current", "end-point-2-current",
+      "start-point-2-line-current", "end-point-2-line-current",
+    ].forEach((id) => { try { if (map2.getSource(id)) map2.removeSource(id); } catch {} });
   }, []);
 
   const clearAllRoutes2 = useCallback(() => {
     const map2 = map2Ref.current;
     if (!map2) return;
-    setRoutesData2((prev) => {
-      prev.forEach(({ id }) => {
-        [`route-layer-${id}`,`start-point-${id}`,`end-point-${id}`].forEach((l) => { try { if (map2.getLayer(l)) map2.removeLayer(l); } catch {} });
-        [`route-source-${id}`,`start-point-${id}`,`end-point-${id}`].forEach((s) => { try { if (map2.getSource(s)) map2.removeSource(s); } catch {} });
-      });
-      return [];
+    routesData2.forEach(({ id }) => {
+      if (map2.getLayer(`route-layer-${id}`))   map2.removeLayer(`route-layer-${id}`);
+      if (map2.getSource(`route-source-${id}`)) map2.removeSource(`route-source-${id}`);
+      if (map2.getLayer(`start-point-${id}`))   map2.removeLayer(`start-point-${id}`);
+      if (map2.getSource(`start-point-${id}`))  map2.removeSource(`start-point-${id}`);
+      if (map2.getLayer(`end-point-${id}`))     map2.removeLayer(`end-point-${id}`);
+      if (map2.getSource(`end-point-${id}`))    map2.removeSource(`end-point-${id}`);
     });
-    setLinesData2((prev) => {
-      prev.forEach(({ id }) => {
-        [`line-layer-${id}`,`start-line-${id}`,`end-line-${id}`].forEach((l) => { try { if (map2.getLayer(l)) map2.removeLayer(l); } catch {} });
-        [`line-source-${id}`,`start-line-${id}`,`end-line-${id}`].forEach((s) => { try { if (map2.getSource(s)) map2.removeSource(s); } catch {} });
-      });
-      return [];
+    linesData2.forEach(({ id }) => {
+      if (map2.getLayer(`line-layer-${id}`))         map2.removeLayer(`line-layer-${id}`);
+      if (map2.getSource(`line-source-${id}`))       map2.removeSource(`line-source-${id}`);
+      if (map2.getLayer(`start-line-point-${id}`))   map2.removeLayer(`start-line-point-${id}`);
+      if (map2.getSource(`start-line-point-${id}`))  map2.removeSource(`start-line-point-${id}`);
+      if (map2.getLayer(`end-line-point-${id}`))     map2.removeLayer(`end-line-point-${id}`);
+      if (map2.getSource(`end-line-point-${id}`))    map2.removeSource(`end-line-point-${id}`);
     });
+    setRoutesData2([]);
+    setLinesData2([]);
     clearCurrentPoints2();
-  }, [clearCurrentPoints2]);
+  }, [routesData2, linesData2, clearCurrentPoints2]);
 
   const addRouteToMap2 = useCallback(async (points: LngLatLike[]) => {
     const map2 = map2Ref.current;
@@ -3878,12 +3905,12 @@ const routeIdCounter = useRef(0);
                 <img src={isSatellite2 ? `./satelitec.png` : `./satelitebw.png`}
                   alt="Satelital" style={bwIconStyle(isSatellite2)} />
               </button>
-              <button style={controlButtonStyle} onClick={() => { setIsMeasuring2((v) => { if (!v) { setIsMeasuringLine2(false); clearAllRoutes2(); setCurrentPoints2([]); setCurrentLinePoints2([]); } return !v; }); }}
+              <button style={controlButtonStyle} onClick={toggleMeasurement2}
                 title={isMeasuring2 ? "Terminar medición de ruta" : "Medir ruta"}>
                 <img src={isMeasuring2 ? `./rutac.png` : `./rutabw.png`}
                   alt="Medir ruta" style={bwIconStyle(isMeasuring2)} />
               </button>
-              <button style={controlButtonStyle} onClick={() => { setIsMeasuringLine2((v) => { if (!v) { setIsMeasuring2(false); clearAllRoutes2(); setCurrentPoints2([]); setCurrentLinePoints2([]); } return !v; }); }}
+              <button style={controlButtonStyle} onClick={toggleLineMeasurement2}
                 title={isMeasuringLine2 ? "Terminar medición línea recta" : "Medir línea recta"}>
                 <div style={{ ...buttonIconStyle, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "bold", color: isMeasuringLine2 ? "#007cbf" : isDark ? "#94a3b8" : "#6c757d" }}>⟷</div>
               </button>
@@ -3906,25 +3933,27 @@ const routeIdCounter = useRef(0);
               </button>
             </div>
 
-            {/* Popups de rutas y líneas del panel 2 */}
-            {routesData2.map((route) => {
-              if (!map2Ref.current) return null;
-              const pt = map2Ref.current.project(route.endPoint);
-              return (
-                <div key={`r2-${route.id}`} className="custom-route-popup" style={{ left: `${pt.x}px`, top: `${pt.y}px` }}>
-                  <strong>Distancia:</strong> {route.distance} km<br /><strong>Tiempo:</strong> {route.duration}
-                </div>
-              );
-            })}
-            {linesData2.map((line) => {
-              if (!map2Ref.current) return null;
-              const pt = map2Ref.current.project(line.endPoint);
-              return (
-                <div key={`l2-${line.id}`} className="custom-route-popup" style={{ left: `${pt.x}px`, top: `${pt.y}px`, backgroundColor: "#ff6b35", color: "#ffffff" }}>
-                  <strong>Distancia:</strong> {line.distance} km<br /><strong>Tipo:</strong> Línea recta
-                </div>
-              );
-            })}
+            {/* Popups de rutas y líneas del panel 2 — contenedor posicionado al origen del canvas de Panel 2 */}
+            <div style={{ position: "absolute", left: `${dividerX}%`, right: 0, top: 0, bottom: 0, pointerEvents: "none" }}>
+              {routesData2.map((route) => {
+                if (!map2Ref.current) return null;
+                const pt = map2Ref.current.project(route.endPoint);
+                return (
+                  <div key={`r2-${route.id}`} className="custom-route-popup" style={{ left: `${pt.x}px`, top: `${pt.y}px` }}>
+                    <strong>Distancia:</strong> {route.distance} km<br /><strong>Tiempo:</strong> {route.duration}
+                  </div>
+                );
+              })}
+              {linesData2.map((line) => {
+                if (!map2Ref.current) return null;
+                const pt = map2Ref.current.project(line.endPoint);
+                return (
+                  <div key={`l2-${line.id}`} className="custom-route-popup" style={{ left: `${pt.x}px`, top: `${pt.y}px`, backgroundColor: "#ff6b35", color: "#ffffff" }}>
+                    <strong>Distancia:</strong> {line.distance} km<br /><strong>Tipo:</strong> Línea recta
+                  </div>
+                );
+              })}
+            </div>
           </>
         )}
       </AnimatePresence>
