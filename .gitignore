@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 .cache/
 build/
 npm-debug.log*
@@ -11,11 +11,3 @@ Thumbs.db
 .netlify
 
 dist/
-
-public/data/*.pmtiles
-
-node_modules/
-
-*.pmtiles
-
-*.pmtiles
