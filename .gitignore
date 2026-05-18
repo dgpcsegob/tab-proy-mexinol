@@ -11,3 +11,7 @@ Thumbs.db
 .netlify
 
 dist/
+
+# Editor and local config
+.vscode/
+.claude/
