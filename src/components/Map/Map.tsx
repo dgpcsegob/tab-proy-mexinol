@@ -11,7 +11,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import { AnimatePresence } from "framer-motion";
 import { SplitHandle } from "./SplitHandle";
-import InfoBox, { InfoBoxSection } from "../InfoBox/InfoBox";
+import InfoBox, { InfoBoxSection, LegendItem } from "../InfoBox/InfoBox";
 
 type MapProps = {
   layersVisibility: { [layerId: string]: boolean };
@@ -24,64 +24,76 @@ type MapProps = {
 
 /*== Propiedad de opacidad por tipo de capa ==*/
 const layerOpacityProp: Record<string, string> = {
-  // Zonas geológicas
-  zonaver: "circle-opacity",
-  zonatam: "circle-opacity",
-  zonacuencas: "circle-opacity",
-  zonaburgos: "circle-opacity",
-  zonaas: "circle-opacity",
-  zonaap: "circle-opacity",
-  // Social / Pueblos Indígenas
-  territoriospi: "fill-opacity",
-  // comind: "circle-opacity",
-  // com_ind: "circle-opacity",
-  // Riesgo Hídrico (4 niveles)
-  riesgohic: "fill-opacity",
-  riesgohia: "fill-opacity",
-  riesgohim: "fill-opacity",
-  riesgohib: "fill-opacity",
-  riesgohc: "fill-opacity",
-  riesgoha: "fill-opacity",
-  // Provincias prospectivas (12)
-  burgos: "fill-opacity",
-  chihuahua: "fill-opacity",
-  cinturon_plegado_chiapas: "fill-opacity",
-  cinturon_plegado_smo: "fill-opacity",
-  golfo_california: "fill-opacity",
-  golfo_mexico_profundo: "fill-opacity",
-  plataforma_yucatan: "fill-opacity",
-  sabinas_burro_picachos: "fill-opacity",
-  sureste: "fill-opacity",
-  tampico_misantla: "fill-opacity",
-  veracruz: "fill-opacity",
-  vizcaino_purisima_iray: "fill-opacity",
-  // Pozos (5 condiciones)
-  pozosap: "circle-opacity",
-  pozosc: "circle-opacity",
-  pozosi: "circle-opacity",
-  pozosp: "circle-opacity",
-  pozoss: "circle-opacity",
-  // Campos de Reserva (3 tipos) + com_ind
-  camposresas: "fill-opacity",
-  camposresm: "fill-opacity",
-  camposrest: "fill-opacity",
-  camposres_comind: "circle-opacity",
-  areaspotnc: "fill-opacity",
-  // Diputados (5 partidos)
-  diputados_morena: "fill-opacity",
-  diputados_pri: "fill-opacity",
-  diputados_pan: "fill-opacity",
-  diputados_pvem: "fill-opacity",
-  diputados_pt: "fill-opacity",
-  // División política — se manejan con expresión feature-state en el useEffect
-  ent: "fill-opacity",
-  mun: "fill-opacity",
-  // Ambiental
-  anp: "fill-opacity",
-  zonascult: "circle-opacity",
+  // Municipio Ahome
+  ahome_mun: "fill-opacity",
+  // Área de impacto del Proyecto (E-escenarios — fill)
+  aip_area_t1:       "fill-opacity",
+  aip_area_t2:       "fill-opacity",
+  aip_area_t3:       "fill-opacity",
+  aip_area_t4:       "fill-opacity",
+  aip_area_t5:       "fill-opacity",
+  aip_area_t6:       "fill-opacity",
+  aip_area_t7:       "fill-opacity",
+  aip_area_t8:       "fill-opacity",
+  aip_area_t9:       "fill-opacity",
+  aip_area_t10:      "fill-opacity",
+  aip_area_t11:      "fill-opacity",
+  aip_area_t12:      "fill-opacity",
+  aip_area_t13:      "fill-opacity",
+  aip_derecho_via:   "fill-opacity",
+  aip_pol_norte:     "fill-opacity",
+  aip_predio_sur:    "fill-opacity",
+  aip_camino:        "fill-opacity",
+  // E-escenarios — sub-capas por Name
+  e01_zona: "fill-opacity",  e01_predio: "fill-opacity",
+  e02_zona: "fill-opacity",  e02_predio: "fill-opacity",
+  e03_zona: "fill-opacity",  e03_predio: "fill-opacity",
+  e04_zona: "fill-opacity",  e04_predio: "fill-opacity",
+  e05a_zona: "fill-opacity", e05a_predio: "fill-opacity",
+  e05b_zona: "fill-opacity", e05b_predio: "fill-opacity",
+  e06_zona: "fill-opacity",  e06_predio: "fill-opacity",
+  e07a: "fill-opacity",
+  e07b: "fill-opacity",
+  e08_zona: "fill-opacity",  e08_adecuacion: "fill-opacity",
+  e09_zona: "fill-opacity",  e09_adecuacion: "fill-opacity",
+  e13_zona: "fill-opacity",  e13_predio: "fill-opacity",
+  e14_zona: "fill-opacity",  e14_predio: "fill-opacity",
+  esc12_t1: "fill-opacity",  esc12_t2: "fill-opacity",  esc12_t3: "fill-opacity",
+  esc12_t4: "fill-opacity",  esc12_t5: "fill-opacity",  esc12_t6: "fill-opacity",
+  esc12_t7: "fill-opacity",  esc12_t8: "fill-opacity",  esc12_t9: "fill-opacity",
+  esc12_t10: "fill-opacity", esc12_t11: "fill-opacity", esc12_t12: "fill-opacity",
+  esc12_t13: "fill-opacity", esc12_ddv: "fill-opacity",  esc12_dvia: "fill-opacity",
+  esc12_znube: "fill-opacity", esc12_nube2: "fill-opacity", esc12_pnorte: "fill-opacity",
+  esc12_psur: "fill-opacity",  esc12_a: "fill-opacity",  esc12_b: "fill-opacity",
+  esc12_c: "fill-opacity",     esc12_camino: "fill-opacity",
+  // Centros Escolares (symbol — cuadrado)
+  educ_preesc_pub:    "icon-opacity",
+  educ_preesc_priv:   "icon-opacity",
+  educ_prim_pub:      "icon-opacity",
+  educ_prim_priv:     "icon-opacity",
+  educ_media_sup_pub: "icon-opacity",
+  educ_media_sup_priv:"icon-opacity",
+  educ_media_tec_priv:"icon-opacity",
+  educ_superior_pub:  "icon-opacity",
+  educ_superior_priv: "icon-opacity",
+  // Otros
+  ejidos_rosendo:   "fill-opacity",
+  ejidos_topoviejo: "fill-opacity",
+  salu_pub:  "icon-opacity",
+  salu_priv: "icon-opacity",
   // Comunidades
-  asentamientos: "circle-opacity",
-  LocalidadesSedeINPI: "circle-opacity",
+  localidades_inpi: "circle-opacity",
+  asent_com:        "circle-opacity",
+  // Ambiental
+  anp_ahome:               "fill-opacity",
+  cuerpos_agua_perenne:    "fill-opacity",
+  cuerpos_agua_intermit:   "fill-opacity",
+  uso_suelo_acuicola:    "fill-opacity",
+  uso_suelo_riego_anual: "fill-opacity",
+  uso_suelo_riego_semi:  "fill-opacity",
+  uso_suelo_riego_perm:  "fill-opacity",
+  uso_suelo_temporal:    "fill-opacity",
+  uso_suelo_asent_hum:   "fill-opacity",
 };
 
 interface RouteData {
@@ -141,731 +153,448 @@ const getStyle = (sat: boolean, d3: boolean, _dark: boolean): string | any => {
 const getStyleUrl = getStyle;
 
 
+
 /*== Añade capas vectoriales desde PMTiles (función pura, sin dependencias de estado) ==*/
 const addVectorLayers = (map: maplibregl.Map) => {
-  if (!map.getSource("LocalidadesSedeINPI")) {
-    map.addSource("LocalidadesSedeINPI", {
+
+  /*== Municipio de Ahome ==*/
+  if (!map.getSource("ahome_mun")) {
+    map.addSource("ahome_mun", {
       type: "vector",
-      url: "pmtiles://data/com_ind_inpi.pmtiles",
+      url: "pmtiles://data/ahome_mun.pmtiles",
     });
   }
-  const dark2 = [
-    "#1b9e77",
-    "#d95f02",
-    "#7570b3",
-    "#e7298a",
-    "#66a61e",
-    "#e6ab02",
-    "#a6761d",
-    "#666666",
-  ];
-  const pueblosMatch: (string | number)[] = [];
-  for (let i = 1; i <= 72; i++) {
-    pueblosMatch.push(i, dark2[i % dark2.length]);
-  }
-  const puebloExpression = [
-    "match",
-    ["get", "ID_Pueblo"],
-    ...pueblosMatch,
-    "#ec3db8",
-  ] as any;
-   if (!map.getSource("asentamientos")) {
-    map.addSource("asentamientos", {
-      type: "vector",
-      url: "pmtiles://data/asent_com_inpi.pmtiles",
-    });
-  }
-  if (!map.getLayer("asentamientos")) {
+  if (!map.getLayer("ahome_mun")) {
     map.addLayer({
-      id: "asentamientos",
-      type: "circle",
-      source: "asentamientos",
-      "source-layer": "asent_com_inpi_tile",
-      paint: {
-        "circle-color": "rgb(255, 118, 38)",
-        "circle-radius": 2,
-        "circle-opacity": 0.8,
-        "circle-stroke-color": "#ffffffff",
-        "circle-stroke-width": 0.5,
-      },
-    });
-  }
-  if (!map.getLayer("LocalidadesSedeINPI-halo")) {
-    map.addLayer({
-      id: "LocalidadesSedeINPI-halo",
-      type: "circle",
-      source: "LocalidadesSedeINPI",
-      "source-layer": "com_ind_inpi_tile",
-      layout: { visibility: "none" },
-      paint: {
-        "circle-color": puebloExpression,
-        "circle-radius": 3,
-        "circle-opacity": 0.15,
-        "circle-stroke-width": 0,
-      },
-    });
-  }
-  if (!map.getLayer("LocalidadesSedeINPI-pulse")) {
-    map.addLayer({
-      id: "LocalidadesSedeINPI-pulse",
-      type: "circle",
-      source: "LocalidadesSedeINPI",
-      "source-layer": "com_ind_inpi_tile",
-      layout: { visibility: "none" },
-      paint: {
-        "circle-color": "rgba(0,0,0,0)",
-        "circle-radius": 2,
-        "circle-opacity": 0.2,
-        "circle-stroke-color": puebloExpression,
-        "circle-stroke-width": .5,
-      },
-    });
-  }
-  if (!map.getLayer("LocalidadesSedeINPI")) {
-    map.addLayer({
-      id: "LocalidadesSedeINPI",
-      type: "circle",
-      source: "LocalidadesSedeINPI",
-      "source-layer": "com_ind_inpi_tile",
-      paint: {
-        "circle-radius": 3.2,
-        "circle-color": puebloExpression,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 0.1,
-      },
-    });
-  }
-  
-    if (!map.getSource("rm")) {
-    map.addSource("rm", {
-      type: "vector",
-      url: "pmtiles://data/rm.pmtiles",
-      promoteId: { "rm_tile": "NOMGEO" },
-    });
-  }
-  if (!map.getLayer("rm")) {
-    map.addLayer({
-      id: "rm",
+      id: "ahome_mun",
       type: "fill",
-      source: "rm",
-      "source-layer": "rm_tile",
-      paint: {
-        // "fill-color": "#fbff08",
-        "fill-opacity": 0.1,
-      },
+      source: "ahome_mun",
+      "source-layer": "ahome_mun_tile",
+      paint: { "fill-color": "#90f2ff", "fill-opacity": 0.08, "fill-antialias": false },
     });
   }
-  if (!map.getLayer("rm-border")) {
+  if (!map.getLayer("ahome_mun-border")) {
     map.addLayer({
-      id: "rm-border",
+      id: "ahome_mun-border",
       type: "line",
-      source: "rm",
-      "source-layer": "rm_tile",
-      paint: { "line-color": "#fbff00", "line-width": 1, "line-opacity": 0.2 },
+      source: "ahome_mun",
+      "source-layer": "ahome_mun_tile",
+      paint: { "line-color": "#90f2ff", "line-width": 1.8, "line-opacity": 0.85 },
     });
   }
 
-  if (!map.getSource("ent")) {
-    map.addSource("ent", {
+  /*== Área de Impacto Directa — sub-capas por Name ==*/
+  if (!map.getSource("aip")) {
+    map.addSource("aip", {
       type: "vector",
-      url: "pmtiles://data/00ent.pmtiles",
-      promoteId: { "00ent_tile": "NOMGEO" },
+      url: "pmtiles://data/Area de Impacto_Proyecto.pmtiles",
     });
   }
-  if (!map.getLayer("ent")) {
-    map.addLayer({
-      id: "ent",
-      type: "fill",
-      source: "ent",
-      "source-layer": "00ent_tile",
-      paint: {
-        "fill-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 0.2, 0.01] as any,
-      },
-    });
-  }
-  if (!map.getLayer("ent-border")) {
-    map.addLayer({
-      id: "ent-border",
-      type: "line",
-      source: "ent",
-      "source-layer": "00ent_tile",
-      paint: { "line-color": "#fdff72", "line-width": 0.8, "line-opacity": 0.7 },
-    });
-  }
-  if (!map.getLayer("ent-click-border")) {
-    map.addLayer({
-      id: "ent-click-border",
-      type: "line",
-      source: "ent",
-      "source-layer": "00ent_tile",
-      paint: {
-        "line-color": "#fdff72",
-        "line-width": ["case", ["boolean", ["feature-state", "clicked"], false], 3, 0] as any,
-        "line-opacity": 0.95,
-      },
-    });
-  }
- 
-  if (!map.getSource("mun")) {
-    map.addSource("mun", {
-      type: "vector",
-      url: "pmtiles://data/00mun.pmtiles",
-      promoteId: { "00mun_tile": "NOMGEO" },
-    });
-  }
-  if (!map.getLayer("mun")) {
-    map.addLayer({
-      id: "mun",
-      type: "fill",
-      source: "mun",
-      "source-layer": "00mun_tile",
-      paint: {
-        "fill-color": "#90f2ff",
-        "fill-opacity": ["case",
-          ["boolean", ["feature-state", "clicked"], false], 0.3,
-          0,
-        ] as any,
-      },
-    });
-  }
-
-  if (!map.getSource("anp")) {
-    map.addSource("anp", {
-      type: "vector",
-      url: "pmtiles://data/areas_naturales_protegidas_federales.pmtiles",
-    });
-  }
-  if (!map.getLayer("anp")) {
-    map.addLayer({
-      id: "anp",
-      type: "fill",
-      source: "anp",
-      "source-layer": "areas_naturales_protegidas_federales_tile",
-      paint: {
-        "fill-color": "#AEEA00",
-        "fill-opacity": 0.5,
-        "fill-antialias": false,
-      },
-    });
-  }
-  if (!map.getSource("areaspotnc")) {
-    map.addSource("areaspotnc", {
-      type: "vector",
-      url: "pmtiles://data/areas_potenciales_no_convencionales_—_Áreas_potenciales_de_recursos_no_convencionales.pmtiles",
-    });
-  }
-  if (!map.getLayer("areaspotnc")) {
-    map.addLayer({
-      id: "areaspotnc",
-      type: "fill",
-      source: "areaspotnc",
-      "source-layer": "areas_potenciales_no_convencionales_—_Áreas_potenciales_de_recursos_no_convencionales_tile",
-      paint: {
-        "fill-color": "#FFAB40",
-        "fill-opacity": 0.4,
-        "fill-antialias": false,
-      },
-    });
-  }
- 
-  if (!map.getSource("camposres")) {
-    map.addSource("camposres", {
-      type: "vector",
-      url: "pmtiles://data/Campos_(Reservas_01-01-2024).pmtiles",
-    });
-  }
-  // 3 capas filtradas por tipo — campo "CLASIFICACION"
-  const camposCapas = [
-    { id: "camposresas", tipo: "Aguas someras", color: "#52c0ff" },
-    { id: "camposresm",  tipo: "Marino",        color: "#3d1aff" },
-    { id: "camposrest",  tipo: "Terrestre",     color: "#00a808" },
+  const aipCats: { id: string; name: string; color: string }[] = [
+    { id: "aip_area_t1",     name: "Area T1",           color: "#FF073A" },
+    { id: "aip_area_t2",     name: "Area T2",           color: "#FF6B00" },
+    { id: "aip_area_t3",     name: "Area T3",           color: "#FFE500" },
+    { id: "aip_area_t4",     name: "Area T4",           color: "#39FF14" },
+    { id: "aip_area_t5",     name: "Area T5",           color: "#00FFFF" },
+    { id: "aip_area_t6",     name: "Area T6",           color: "#00B3FF" },
+    { id: "aip_area_t7",     name: "Area T7",           color: "#7B2FFF" },
+    { id: "aip_area_t8",     name: "Area T8",           color: "#FF00FF" },
+    { id: "aip_area_t9",     name: "Area T9",           color: "#FF1493" },
+    { id: "aip_area_t10",    name: "Area T10",          color: "#ADFF2F" },
+    { id: "aip_area_t11",    name: "Area T11",          color: "#00FF7F" },
+    { id: "aip_area_t12",    name: "Area T12",          color: "#00FFBF" },
+    { id: "aip_area_t13",    name: "Area T13",          color: "#FF9F00" },
+    { id: "aip_derecho_via", name: "Derecho de via P",  color: "#FF6EC7" },
+    { id: "aip_pol_norte",   name: "Polígono Norte",    color: "#CCFF00" },
+    { id: "aip_predio_sur",  name: "Predio Sur",        color: "#FF3EFF" },
+    { id: "aip_camino",      name: "camino",            color: "#4DFFFF" },
   ];
-  for (const c of camposCapas) {
-    if (!map.getLayer(c.id)) {
+  for (const cat of aipCats) {
+    if (!map.getLayer(cat.id)) {
       map.addLayer({
-        id: c.id,
+        id: cat.id,
         type: "fill",
-        source: "camposres",
-        "source-layer": "Campos_Reservas_01012024_tile",
-        filter: ["==", ["get", "ubicacin"], c.tipo],
-        paint: { "fill-color": c.color, "fill-opacity": 0.6, "fill-antialias": false },
+        source: "aip",
+        "source-layer": "AreadeImpacto_Proyecto_tile",
+        filter: ["==", ["get", "Name"], cat.name],
+        paint: { "fill-color": cat.color, "fill-opacity": 0.45, "fill-antialias": false },
       });
     }
   }
 
-  if (!map.getSource("zonascult")) {
-    map.addSource("zonascult", {
-      type: "vector",
-      url: "pmtiles://data/cult_zonas_arqueologicas_inah_0922_xy_p.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonascult")) {
-    map.addLayer({
-      id: "zonascult",
-      type: "circle",
-      source: "zonascult",
-      "source-layer": "cult_zonas_arqueologicas_inah_0922_xy_p_tile",
-      paint: {
-        "circle-color": "#FFD740",
-        "circle-radius": 4,
-        "circle-opacity": 0.7,
-        "circle-stroke-color": "#bda000",
-        "circle-stroke-width": 0.1,
-      },
-    });
-  }
+  /*== E-escenarios: zonas de amortiguamiento desagregadas por Name ==*/
+  type ESubLayer = { id: string; name: string; color: string };
+  type EScenarioDef = { sourceId: string; file: string; sourceLayer: string; subLayers: ESubLayer[] };
 
-  if (!map.getSource("diputados")) {
-    map.addSource("diputados", {
-      type: "vector",
-      url: "pmtiles://data/diputados_lxvi_fracking_—_Diputados_LXVI_legislatura_con_fracking_potencial.pmtiles",
-    });
-  }
-  // 5 capas filtradas por grupo parlamentario — campo "Grupo_Parlamentario"
-  const diputadosCapas = [
-    { id: "diputados_morena", partido: "MORENA",  color: "#611232" },
-    { id: "diputados_pri",    partido: "PRI",      color: "#ff0707" },
-    { id: "diputados_pan",    partido: "PAN",      color: "#3e49ec" },
-    { id: "diputados_pvem",   partido: "PVEM",     color: "#01803a" },
-    { id: "diputados_pt",     partido: "PT",       color: "#9b0f47" },
+  const eScenarioDefs: EScenarioDef[] = [
+    { sourceId: "e01", file: "E01_Zona de Amortiguamiento_Tanque de Metanol 4101T001A-B.pmtiles", sourceLayer: "E01_ZonadeAmortiguamiento_TanquedeMetanol4101T001AB_tile",
+      subLayers: [
+        { id: "e01_zona",   name: "E01_Zona de Amortiguamiento_Metanol", color: "#E91E63" },
+        { id: "e01_predio", name: "Predio NORTE",                        color: "#39FF14" },
+      ] },
+    { sourceId: "e02", file: "E02_Zona de Amortiguamiento_Tanque de Metanol 4101T001A-B.pmtiles", sourceLayer: "E02_ZonadeAmortiguamiento_TanquedeMetanol4101T001AB_tile",
+      subLayers: [
+        { id: "e02_zona",   name: "E02_Zona de Amortiguamiento_Metanol", color: "#F48FB1" },
+        { id: "e02_predio", name: "Predio NORTE",                        color: "#00FFFF" },
+      ] },
+    { sourceId: "e03", file: "E03_Zona de amortiguamiento_Tanque de Metanol 4101T003.pmtiles", sourceLayer: "E03_Zonadeamortiguamiento_TanquedeMetanol4101T003_tile",
+      subLayers: [
+        { id: "e03_zona",   name: "E03_Zona de amortiguamiento_Metanol", color: "#9C27B0" },
+        { id: "e03_predio", name: "Predio NORTE",                        color: "#ADFF2F" },
+      ] },
+    { sourceId: "e04", file: "E04_Zona de Amortiguamiento_Tanque de Metanol 4101T003.pmtiles", sourceLayer: "E04_ZonadeAmortiguamiento_TanquedeMetanol4101T003_tile",
+      subLayers: [
+        { id: "e04_zona",   name: "E04_Zona de amortiguamiento_Metanol", color: "#CE93D8" },
+        { id: "e04_predio", name: "Predio NORTE",                        color: "#FF073A" },
+      ] },
+    { sourceId: "e05a", file: "E05_Zona de Amortiguamiento_Tanque de Metanol  9531T001A-C.pmtiles", sourceLayer: "E05_ZonadeAmortiguamiento_TanquedeMetanol9531T001AC_tile",
+      subLayers: [
+        { id: "e05a_zona",   name: "E05_Zona de Amortiguamiento_Metanol", color: "#00BCD4" },
+        { id: "e05a_predio", name: "Predio NORTE",                         color: "#FF6EC7" },
+      ] },
+    { sourceId: "e05b", file: "E05_Zona_de_Amortiguamiento_Tanque_de_Metanol _9531T001A-C.pmtiles", sourceLayer: "E05_Zona_de_Amortiguamiento_Tanque_de_Metanol_9531T001AC_tile",
+      subLayers: [
+        { id: "e05b_zona",   name: "E05_Zona de Amortiguamiento_Metanol", color: "#80DEEA" },
+        { id: "e05b_predio", name: "Predio NORTE",                         color: "#FF6B00" },
+      ] },
+    { sourceId: "e06", file: "E06_Zona de Amortiguamiento_Tanque de Metanol  9531T001A-C.pmtiles", sourceLayer: "E06_ZonadeAmortiguamiento_TanquedeMetanol9531T001AC_tile",
+      subLayers: [
+        { id: "e06_zona",   name: "E06_Zona de Amortiguamiento_Metanol", color: "#009688" },
+        { id: "e06_predio", name: "Predio NORTE",                        color: "#FF3EFF" },
+      ] },
+    { sourceId: "e08", file: "E08_Zona de Amortiguamiento_Brazos de descarga.pmtiles", sourceLayer: "E08_ZonadeAmortiguamiento_Brazosdedescarga_tile",
+      subLayers: [
+        { id: "e08_zona",       name: "E08_Zona de amortiguamiento_Brazos", color: "#FF9800" },
+        { id: "e08_adecuacion", name: "Adecuacion IP",                      color: "#7B2FFF" },
+      ] },
+    { sourceId: "e09", file: "E09_Zona de Amortiguamiento_Brazos de descarga.pmtiles", sourceLayer: "E09_ZonadeAmortiguamiento_Brazosdedescarga_tile",
+      subLayers: [
+        { id: "e09_zona",       name: "E09_Zona de amortiguamiento_Brazos", color: "#FFCC80" },
+        { id: "e09_adecuacion", name: "Adecuacion IP",                      color: "#00FF7F" },
+      ] },
+    { sourceId: "e13", file: "E13_Zona de Amortiguamiento_Gas Cloro.pmtiles", sourceLayer: "E13_ZonadeAmortiguamiento_GasCloro_tile",
+      subLayers: [
+        { id: "e13_zona",   name: "E13_Zona de Amortiguamiento_Gas Cloro", color: "#FFEB3B" },
+        { id: "e13_predio", name: "Predio NORTE",                          color: "#00B3FF" },
+      ] },
+    { sourceId: "e14", file: "E14_Zona de Amortiguamiento_Gas Cloro.pmtiles", sourceLayer: "E14_ZonadeAmortiguamiento_GasCloro_tile",
+      subLayers: [
+        { id: "e14_zona",   name: "E14_Zona de Amortiguamiento_Gas Cloro", color: "#FFF176" },
+        { id: "e14_predio", name: "Predio NORTE",                          color: "#FF1493" },
+      ] },
+    { sourceId: "esc12", file: "Escenario 12_Zona de Amortiguamiento_Tanque de Gas Cloro.pmtiles", sourceLayer: "Escenario12_ZonadeAmortiguamiento_TanquedeGasCloro_tile",
+      subLayers: [
+        { id: "esc12_t1",    name: "Area T1",                                           color: "#FF073A" },
+        { id: "esc12_t2",    name: "Area T2",                                           color: "#FF6B00" },
+        { id: "esc12_t3",    name: "Area T3",                                           color: "#FFE500" },
+        { id: "esc12_t4",    name: "Area T4",                                           color: "#39FF14" },
+        { id: "esc12_t5",    name: "Area T5",                                           color: "#00FFFF" },
+        { id: "esc12_t6",    name: "Area T6",                                           color: "#00B3FF" },
+        { id: "esc12_t7",    name: "Area T7",                                           color: "#7B2FFF" },
+        { id: "esc12_t8",    name: "Area T8",                                           color: "#FF00FF" },
+        { id: "esc12_t9",    name: "Area T9",                                           color: "#FF1493" },
+        { id: "esc12_t10",   name: "Area T10",                                          color: "#ADFF2F" },
+        { id: "esc12_t11",   name: "Area T11",                                          color: "#00FF7F" },
+        { id: "esc12_t12",   name: "Area T12",                                          color: "#00FFBF" },
+        { id: "esc12_t13",   name: "Area T13",                                          color: "#FF9F00" },
+        { id: "esc12_ddv",   name: "DDV DERECHO",                                       color: "#FF6EC7" },
+        { id: "esc12_dvia",  name: "Derecho de via P",                                  color: "#CCFF00" },
+        { id: "esc12_znube", name: "Escenario 12 Nube toxica Zona de Amortiguamiento",  color: "#F44336" },
+        { id: "esc12_nube2", name: "Escenario Nube toxica Amortiguamiento 12",          color: "#FF4500" },
+        { id: "esc12_pnorte",name: "Predio NORTE",                                      color: "#FFD700" },
+        { id: "esc12_psur",  name: "Predio Sur",                                        color: "#FF3EFF" },
+        { id: "esc12_a",     name: "a",                                                 color: "#4DFFFF" },
+        { id: "esc12_b",     name: "b",                                                 color: "#00FF41" },
+        { id: "esc12_c",     name: "c",                                                 color: "#FF5EFF" },
+        { id: "esc12_camino",name: "camino",                                            color: "#00BFFF" },
+      ] },
   ];
-  for (const c of diputadosCapas) {
-    if (!map.getLayer(c.id)) {
-      map.addLayer({
-        id: c.id,
-        type: "fill",
-        source: "diputados",
-        "source-layer": "diputados_lxvi_fracking_—_Diputados_LXVI_legislatura_con_fracking_potencial_tile",
-        filter: ["==", ["get", "Grupo_Parlamentario"], c.partido],
-        paint: { "fill-color": c.color, "fill-opacity": 0.5, "fill-antialias": false },
-      });
+
+  for (const sc of eScenarioDefs) {
+    if (!map.getSource(sc.sourceId)) {
+      map.addSource(sc.sourceId, { type: "vector", url: `pmtiles://data/${sc.file}` });
+    }
+    for (const sub of sc.subLayers) {
+      if (!map.getLayer(sub.id)) {
+        map.addLayer({
+          id: sub.id, type: "fill", source: sc.sourceId, "source-layer": sc.sourceLayer,
+          filter: ["==", ["get", "Name"], sub.name],
+          paint: { "fill-color": sub.color, "fill-opacity": 0.35, "fill-antialias": true },
+        });
+      }
+      if (!map.getLayer(`${sub.id}-glow`)) {
+        map.addLayer({
+          id: `${sub.id}-glow`, type: "line", source: sc.sourceId, "source-layer": sc.sourceLayer,
+          filter: ["==", ["get", "Name"], sub.name],
+          paint: { "line-color": sub.color, "line-width": 8, "line-opacity": 0.35, "line-blur": 6 },
+        });
+      }
+      if (!map.getLayer(`${sub.id}-border`)) {
+        map.addLayer({
+          id: `${sub.id}-border`, type: "line", source: sc.sourceId, "source-layer": sc.sourceLayer,
+          filter: ["==", ["get", "Name"], sub.name],
+          paint: { "line-color": sub.color, "line-width": 1, "line-opacity": 0.85 },
+        });
+      }
     }
   }
 
-  if (!map.getSource("pozosfa")) {
-    map.addSource("pozosfa", {
-      type: "vector",
-      url: "pmtiles://data/pozos_fracking_actuales_—_Pozos_actuales_con_fracking.pmtiles",
-    });
-  }
-  // 5 capas filtradas por estado — campo "estado_act"
-  const pozosCapas = [
-    { id: "pozosap", condicion: "ABANDONO PERMANENTE", color: "#FF3D00" },
-    { id: "pozosc",  condicion: "CERRADO",                    color: "#FFAB40" },
-    { id: "pozosi",  condicion: "INACTIVO",                   color: "#FF6D00" },
-    { id: "pozosp",  condicion: "PRODUCTOR",                  color: "#1e5b4f" },
-    { id: "pozoss",  condicion: "SUSPENDIDO",                  color: "#FFC107" },
+  /*== E07a y E07b — capa única (1 feature cada una) ==*/
+  const e07Single = [
+    { id: "e07a", color: "#4CAF50", file: "E07_Zona de Amortiguamiento_Ducto de Metanol.pmtiles",            sourceLayer: "E07_ZonadeAmortiguamiento_DuctodeMetanol_tile" },
+    { id: "e07b", color: "#A5D6A7", file: "E07_Zona_de_Amortiguamiento_Ducto_de_Metanol-Buffer_Eje.pmtiles", sourceLayer: "E07_Zona_de_Amortiguamiento_Ducto_de_MetanolBuffer_Eje_tile" },
   ];
-  for (const c of pozosCapas) {
-    if (!map.getLayer(c.id)) {
+  for (const sc of e07Single) {
+    if (!map.getSource(sc.id)) map.addSource(sc.id, { type: "vector", url: `pmtiles://data/${sc.file}` });
+    if (!map.getLayer(sc.id)) {
+      map.addLayer({ id: sc.id, type: "fill", source: sc.id, "source-layer": sc.sourceLayer,
+        paint: { "fill-color": sc.color, "fill-opacity": 0.35, "fill-antialias": true } });
+    }
+    if (!map.getLayer(`${sc.id}-glow`)) {
+      map.addLayer({ id: `${sc.id}-glow`, type: "line", source: sc.id, "source-layer": sc.sourceLayer,
+        paint: { "line-color": sc.color, "line-width": 8, "line-opacity": 0.35, "line-blur": 6 } });
+    }
+    if (!map.getLayer(`${sc.id}-border`)) {
+      map.addLayer({ id: `${sc.id}-border`, type: "line", source: sc.id, "source-layer": sc.sourceLayer,
+        paint: { "line-color": sc.color, "line-width": 1, "line-opacity": 0.85 } });
+    }
+  }
+
+  /*== Centros Escolares ==*/
+  const educLayers: { id: string; file: string; sourceLayer: string; color: string }[] = [
+    { id: "educ_preesc_pub",    file: "educ_escuelas_preescolar_pub_1122_xy_p_clipped.pmtiles",  sourceLayer: "educ_escuelas_preescolar_pub_1122_xy_p_clipped_tile",  color: "#FFD54F" },
+    { id: "educ_preesc_priv",   file: "educ_escuelas_preescolar_priv_1122_xy_p_clipped.pmtiles", sourceLayer: "educ_escuelas_preescolar_priv_1122_xy_p_clipped_tile", color: "#FFA726" },
+    { id: "educ_prim_pub",      file: "educ_esc_primaria_pub_1122_xy_p_clipped.pmtiles",         sourceLayer: "educ_esc_primaria_pub_1122_xy_p_clipped_tile",         color: "#66BB6A" },
+    { id: "educ_prim_priv",     file: "educ_esc_primaria_priv_1122_xy_p_clipped.pmtiles",        sourceLayer: "educ_esc_primaria_priv_1122_xy_p_clipped_tile",        color: "#26A69A" },
+    { id: "educ_media_sup_pub", file: "educ_escuelas_media_sup_pub_1122_xy_p_clipped.pmtiles",   sourceLayer: "educ_escuelas_media_sup_pub_1122_xy_p_clipped_tile",   color: "#42A5F5" },
+    { id: "educ_media_sup_priv",file: "educ_escuelas_media_sup_priv_1122_xy_p_clipped.pmtiles",  sourceLayer: "educ_escuelas_media_sup_priv_1122_xy_p_clipped_tile",  color: "#7E57C2" },
+    { id: "educ_media_tec_priv",file: "educ_escuelas_media_tec_priv_1122_xy_p_clipped.pmtiles",  sourceLayer: "educ_escuelas_media_tec_priv_1122_xy_p_clipped_tile",  color: "#EC407A" },
+    { id: "educ_superior_pub",  file: "educ_esc_superior_pub_1122_xy_p_clipped.pmtiles",         sourceLayer: "educ_esc_superior_pub_1122_xy_p_clipped_tile",         color: "#26C6DA" },
+    { id: "educ_superior_priv", file: "educ_esc_superior_priv_1122_xy_p_clipped.pmtiles",        sourceLayer: "educ_esc_superior_priv_1122_xy_p_clipped_tile",        color: "#AB47BC" },
+  ];
+  for (const ed of educLayers) {
+    if (!map.getSource(ed.id)) {
+      map.addSource(ed.id, { type: "vector", url: `pmtiles://data/${ed.file}` });
+    }
+    const educIconId = `sq-${ed.color.replace("#", "")}`;
+    if (!map.hasImage(educIconId)) {
+      map.addImage(educIconId, createMapIcon("square", ed.color, 32));
+    }
+    if (!map.getLayer(ed.id)) {
       map.addLayer({
-        id: c.id,
-        type: "circle",
-        source: "pozosfa",
-        "source-layer": "pozos_fracking_actuales_—_Pozos_actuales_con_fracking_tile",
-        filter: ["==", ["get", "estado_act"], c.condicion],
-        paint: {
-          "circle-color": c.color,
-          "circle-radius": 5,
-          "circle-opacity": 0.8,
-          "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": 0.1,
+        id: ed.id,
+        type: "symbol",
+        source: ed.id,
+        "source-layer": ed.sourceLayer,
+        layout: {
+          "icon-image": educIconId,
+          "icon-size": 0.75,
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
         },
+        paint: { "icon-opacity": 0.88 },
       });
     }
   }
 
-      if (!map.getSource("camposres_comind")) {
-    map.addSource("camposres_comind", {
+  /*== Ejidos afectados — sub-capas por NOM_NUC ==*/
+  if (!map.getSource("ejidos")) {
+    map.addSource("ejidos", { type: "vector", url: "pmtiles://data/ejidos_afectados_mexinol.pmtiles" });
+  }
+  const ejidosCats: { id: string; nomNuc: string; color: string }[] = [
+    { id: "ejidos_rosendo", nomNuc: "ROSENDO G. CASTRO", color: "#1E5B4F" },
+    { id: "ejidos_topoviejo", nomNuc: "TOPOVIEJO",       color: "#002F2A" },
+  ];
+  for (const ej of ejidosCats) {
+    if (!map.getLayer(ej.id)) {
+      map.addLayer({
+        id: ej.id,
+        type: "fill",
+        source: "ejidos",
+        "source-layer": "ejidos_afectados_mexinol_tile",
+        filter: ["==", ["get", "NOM_NUC"], ej.nomNuc],
+        paint: { "fill-color": ej.color, "fill-opacity": 0.45, "fill-antialias": false },
+      });
+    }
+    if (!map.getLayer(`${ej.id}-border`)) {
+      map.addLayer({
+        id: `${ej.id}-border`,
+        type: "line",
+        source: "ejidos",
+        "source-layer": "ejidos_afectados_mexinol_tile",
+        filter: ["==", ["get", "NOM_NUC"], ej.nomNuc],
+        paint: { "line-color": "#ffffff", "line-width": 1, "line-opacity": 0.7 },
+      });
+    }
+  }
+
+  /*== Hospitales ==*/
+  const saluLayers: { id: string; file: string; sourceLayer: string; color: string }[] = [
+    { id: "salu_pub",  file: "salu_hospitales_generales_pub_1122_xy_p_clipped.pmtiles",  sourceLayer: "salu_hospitales_generales_pub_1122_xy_p_clipped_tile",  color: "#EF5350" },
+    { id: "salu_priv", file: "salu_hospitales_generales_priv_1122_xy_p_clipped.pmtiles", sourceLayer: "salu_hospitales_generales_priv_1122_xy_p_clipped_tile", color: "#FF8A65" },
+  ];
+  for (const sl of saluLayers) {
+    if (!map.getSource(sl.id)) {
+      map.addSource(sl.id, { type: "vector", url: `pmtiles://data/${sl.file}` });
+    }
+    const saluIconId = `cx-${sl.color.replace("#", "")}`;
+    if (!map.hasImage(saluIconId)) {
+      map.addImage(saluIconId, createMapIcon("cross", sl.color, 34));
+    }
+    if (!map.getLayer(sl.id)) {
+      map.addLayer({
+        id: sl.id,
+        type: "symbol",
+        source: sl.id,
+        "source-layer": sl.sourceLayer,
+        layout: {
+          "icon-image": saluIconId,
+          "icon-size": 0.95,
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+        },
+        paint: { "icon-opacity": 0.92 },
+      });
+    }
+  }
+
+  /*== Localidades Indígenas INPI — Ahome ==*/
+  if (!map.getSource("localidades_inpi")) {
+    map.addSource("localidades_inpi", {
       type: "vector",
-      url: "pmtiles://data/campos_reservas-com_ind.pmtiles",
+      url: "pmtiles://data/localidades_indígenas_INPI_ahome.pmtiles",
     });
   }
-  if (!map.getLayer("camposres_comind-halo")) {
+  if (!map.getLayer("localidades_inpi")) {
     map.addLayer({
-      id: "camposres_comind-halo",
+      id: "localidades_inpi",
       type: "circle",
-      source: "camposres_comind",
-      "source-layer": "campos_reservascom_ind_tile",
+      source: "localidades_inpi",
+      "source-layer": "localidades_indígenas_INPI_ahome_tile",
       paint: {
-        "circle-color": "#D50000",
-        "circle-radius": 6,
+        "circle-color": "#ec3db8",
+        "circle-radius": 5,
+        "circle-opacity": 0.9,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 0.8,
+      },
+    });
+  }
+
+  /*== Asentamientos Comunidad ==*/
+  if (!map.getSource("asent_com")) {
+    map.addSource("asent_com", {
+      type: "vector",
+      url: "pmtiles://data/asentamientos_comunidad.pmtiles",
+    });
+  }
+  if (!map.getLayer("asent_com-halo")) {
+    map.addLayer({
+      id: "asent_com-halo",
+      type: "circle",
+      source: "asent_com",
+      "source-layer": "asentamientos_comunidad_tile",
+      paint: {
+        "circle-color": "#ff7626",
+        "circle-radius": 10,
         "circle-opacity": 0.12,
         "circle-stroke-width": 0,
       },
     });
   }
-  if (!map.getLayer("camposres_comind-pulse")) {
+  if (!map.getLayer("asent_com-pulse")) {
     map.addLayer({
-      id: "camposres_comind-pulse",
+      id: "asent_com-pulse",
       type: "circle",
-      source: "camposres_comind",
-      "source-layer": "campos_reservascom_ind_tile",
+      source: "asent_com",
+      "source-layer": "asentamientos_comunidad_tile",
       paint: {
         "circle-color": "rgba(0,0,0,0)",
-        "circle-radius": 6,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#D50000",
+        "circle-radius": 12,
+        "circle-opacity": 0,
+        "circle-stroke-color": "#ff7626",
         "circle-stroke-width": 1.5,
+        "circle-stroke-opacity": 0.4,
       },
     });
   }
-  if (!map.getLayer("camposres_comind")) {
+  if (!map.getLayer("asent_com")) {
     map.addLayer({
-      id: "camposres_comind",
+      id: "asent_com",
       type: "circle",
-      source: "camposres_comind",
-      "source-layer": "campos_reservascom_ind_tile",
-      paint: {
-        "circle-color": "#D50000",
-        "circle-radius": 4,
-        "circle-opacity": 0.9,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 1.2,
-      },
-    });
-  }
-
-
-  if (!map.getSource("provinciaspnc")) {
-    map.addSource("provinciaspnc", {
-      type: "vector",
-      url: "pmtiles://data/provincias_prospectivas_no_convencionales_—_Provincias_con_recursos_prospectivos_no_convencionales.pmtiles",
-    });
-  }
-  const provinciasCapas = [
-    { id: "burgos", name: "Burgos", color: "#E57373" },
-    { id: "chihuahua", name: "CHIHUAHUA", color: "#90A4AE" },
-    { id: "cinturon_plegado_chiapas", name: "CINTURON PLEGADO DE CHIAPAS", color: "#F06292" },
-    { id: "cinturon_plegado_smo", name: "CINTURON PLEGADO DE LA SIERRA MADRE ORIENTAL",color: "#BA68C8" },
-    { id: "golfo_california", name: "GOLFO DE CALIFORNIA", color: "#4FC3F7" },
-    { id: "golfo_mexico_profundo", name: "GOLFO DE MEXICO PROFUNDO", color: "#9575CD" },
-    { id: "plataforma_yucatan",  name: "PLATAFORMA DE YUCATAN", color: "#4DB6AC" },
-    { id: "sabinas_burro_picachos", name: "Sabinas - Burro - Picachos",  color: "#A1887F" },
-    { id: "sureste", name: "Sureste", color: "#7986CB" },
-    { id: "tampico_misantla", name: "Tampico - Misantla", color: "#4DD0E1" },
-    { id: "veracruz", name: "Veracruz",  color: "#AED581" },
-    { id: "vizcaino_purisima_iray", name: "VIZCAINO-LA PURISIMA-IRAY", color: "#81C784" },
-  ];
-  for (const c of provinciasCapas) {
-    if (!map.getLayer(c.id)) {
-      map.addLayer({
-        id: c.id,
-        type: "fill",
-        source: "provinciaspnc",
-        "source-layer": "provincias_prospectivas_no_convencionales_—_Provincias_con_recursos_prospectivos_no_convencionales_tile",
-        filter: ["==", ["get", "nombre"], c.name],
-        paint: { "fill-color": c.color, "fill-opacity": 0.4, "fill-antialias": false },
-      });
-    }
-  }
-
-  // Riesgo Hídrico Integrado — 4 capas filtradas por campo RiesgoHídrico
-  if (!map.getSource("riesgohi_integrado")) {
-    map.addSource("riesgohi_integrado", {
-      type: "vector",
-      url: "pmtiles://data/riesgo_hidrico_integrado_—_Riesgo_hídrico_integrado_(cuencas_y_acuíferos).pmtiles",
-    });
-  }
-  const riesgoCapas = [
-    { id: "riesgohic", valor: "A. Crítico",  color: "#D32F2F" },
-    { id: "riesgohia", valor: "B. Alto",      color: "#F57C00" },
-    { id: "riesgohim", valor: "C. Moderado",  color: "#F9A825" },
-    { id: "riesgohib", valor: "D. Bajo",      color: "#388E3C" },
-  ];
-  for (const capa of riesgoCapas) {
-    if (!map.getLayer(capa.id)) {
-      map.addLayer({
-        id: capa.id,
-        type: "fill",
-        source: "riesgohi_integrado",
-        "source-layer": "riesgo_hidrico_integrado_—_Riesgo_hídrico_integrado_cuencas_y_acuíferos_tile",
-        filter: ["==", ["get", "RiesgoHídrico"], capa.valor],
-        paint: {
-          "fill-color": capa.color,
-          "fill-opacity": 0.6,
-          "fill-antialias": false,
-        },
-      });
-    }
-  }
-       if (!map.getSource("territoriospi")) {
-    map.addSource("territoriospi", {
-      type: "vector",
-      url: "pmtiles://data/territorios_pueblos_ing.pmtiles",
-    });
-  }
-  if (!map.getLayer("territoriospi")) {
-    map.addLayer({
-      id: "territoriospi",
-      type: "fill",
-      source: "territoriospi",
-      "source-layer": "territorios_pueblos_ing_tile",
-      paint: {
-        "fill-color": "#FF00E5",
-        "fill-opacity": 0.3,
-        "fill-antialias": false,
-      },
-    });
-  }
-  if (!map.getSource("zonaap")) {
-    map.addSource("zonaap", {
-      type: "vector",
-      url: "pmtiles://data/Zona_Aguas_Profundas.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonaap")) {
-    map.addLayer({
-      id: "zonaap",
-      type: "circle",
-      source: "zonaap",
-      "source-layer": "Zona_Aguas_Profundas_tile",
-      paint: {
-        "circle-color": "#0070FF",
-        "circle-radius": 4,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
-  }
-    if (!map.getSource("zonaas")) {
-    map.addSource("zonaas", {
-      type: "vector",
-      url: "pmtiles://data/Zona_Aguas_Someras.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonaas")) {
-    map.addLayer({
-      id: "zonaas",
-      type: "circle",
-      source: "zonaas",
-      "source-layer": "Zona_Aguas_Someras_tile",
-      paint: {
-        "circle-color": "#00B0FF",
-        "circle-radius": 4,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
-  }
-
-  if (!map.getSource("zonaburgos")) {
-    map.addSource("zonaburgos", {
-      type: "vector",
-      url: "pmtiles://data/Zona_Burgos.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonaburgos")) {
-    map.addLayer({
-      id: "zonaburgos",
-      type: "circle",
-      source: "zonaburgos",
-      "source-layer": "Zona_Burgos_tile",
-      paint: {
-        "circle-color": "#1DE9B6",
-        "circle-radius": 4,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
-  }
-
-  if (!map.getSource("zonacuencas")) {
-    map.addSource("zonacuencas", {
-      type: "vector",
-      url: "pmtiles://data/Zona_Cuencas_del_Sureste.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonacuencas")) {
-    map.addLayer({
-      id: "zonacuencas",
-      type: "circle",
-      source: "zonacuencas",
-      "source-layer": "Zona_Cuencas_del_Sureste_tile",
-      paint: {
-        "circle-color": "#7C4DFF",
-        "circle-radius": 4,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
-  }
-
-  if (!map.getSource("zonatam")) {
-    map.addSource("zonatam", {
-      type: "vector",
-      url: "pmtiles://data/Zona_Tampico-Misantla.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonatam")) {
-    map.addLayer({
-      id: "zonatam",
-      type: "circle",
-      source: "zonatam",
-      "source-layer": "Zona_TampicoMisantla_tile",
-      paint: {
-        "circle-color": "#3D5AFE",
-        "circle-radius": 4,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#ffffff",
-      },
-    });
-  }
-
-  if (!map.getSource("zonaver")) {
-    map.addSource("zonaver", {
-      type: "vector",
-      url: "pmtiles://data/Zona_Veracruz.pmtiles",
-    });
-  }
-  if (!map.getLayer("zonaver")) {
-    map.addLayer({
-      id: "zonaver",
-      type: "circle",
-      source: "zonaver",
-      "source-layer": "Zona_Veracruz_tile",
-      paint: {
-        "circle-color": "#00F5FF",
-        "circle-radius": 4,
-        "circle-opacity": 0.5,
-        "circle-stroke-color": "#ffffff"
-      },
-    });
-  }
-
-  // Overlay de hover para polígonos — fuente GeoJSON compartida
-  if (!map.getSource("hover-polygon")) {
-    map.addSource("hover-polygon", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-    });
-  }
-  if (!map.getLayer("hover-polygon-fill")) {
-    map.addLayer({
-      id: "hover-polygon-fill",
-      type: "fill",
-      source: "hover-polygon",
-      paint: { "fill-color": ["get", "color"], "fill-opacity": 0.22 },
-    });
-  }
-  if (!map.getLayer("hover-polygon-stroke")) {
-    map.addLayer({
-      id: "hover-polygon-stroke",
-      type: "line",
-      source: "hover-polygon",
-      paint: { "line-color": ["get", "color"], "line-width": 2, "line-opacity": 0.9 },
-    });
-  }
-
-  // Highlight de asentamientos vinculados por ID_Pueblo (capa filtrada dinámica)
-  if (!map.getLayer("asentamientos-highlight")) {
-    map.addLayer({
-      id: "asentamientos-highlight",
-      type: "circle",
-      source: "asentamientos",
-      "source-layer": "asent_com_inpi_tile",
-      filter: ["==", ["get", "ID_Pueblo"], -1],
-      paint: {
-        "circle-color": "#FF7626",
-        "circle-radius": 5,
-        "circle-opacity": 0.95,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 1.5,
-      },
-    });
-  }
-
-  // Etiquetas de asentamientos vinculados (visibles sólo cuando hay pin activo)
-  if (!map.getLayer("asentamientos-labels")) {
-    map.addLayer({
-      id: "asentamientos-labels",
-      type: "symbol",
-      source: "asentamientos",
-      "source-layer": "asent_com_inpi_tile",
-      filter: ["==", ["get", "ID_Pueblo"], -1],
-      layout: {
-        "text-field": ["concat",
-          ["coalesce", ["get", "Nombre"], ["get", "Localidad"], ""],
-          ["case", ["has", "Población"],
-            ["concat", "\nPob: ", ["to-string", ["get", "Población"]]],
-            ""
-          ]
-        ],
-        "text-size": 10,
-        "text-offset": [0, 1.2],
-        "text-anchor": "top",
-        "text-line-height": 1.4,
-        "text-allow-overlap": true,
-        "text-ignore-placement": true,
-      } as any,
-      paint: {
-        "text-color": "#FF7626",
-        "text-halo-color": "#0a0e1a",
-        "text-halo-width": 1.5,
-      },
-    });
-  }
-
-  // Asentamientos vinculados al click en camposres_comind
-  // Join: asent_com_inpi.ID_Archivo == campos_reservas-com_ind.ID
-  if (!map.getLayer("asentamientos-comind-dots")) {
-    map.addLayer({
-      id: "asentamientos-comind-dots",
-      type: "circle",
-      source: "asentamientos",
-      "source-layer": "asent_com_inpi_tile",
-      filter: ["==", ["literal", 1], 0],
+      source: "asent_com",
+      "source-layer": "asentamientos_comunidad_tile",
       paint: {
         "circle-color": "#ff7626",
-        "circle-radius": 5,
+        "circle-radius": 4,
         "circle-opacity": 0.9,
         "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 1.5,
-      },
-    });
-  }
-  if (!map.getLayer("asentamientos-comind-labels")) {
-    map.addLayer({
-      id: "asentamientos-comind-labels",
-      type: "symbol",
-      source: "asentamientos",
-      "source-layer": "asent_com_inpi_tile",
-      filter: ["==", ["literal", 1], 0],
-      layout: {
-        "text-field": ["concat",
-          ["coalesce", ["get", "Nombre"], ["get", "Localidad"], ""],
-          ["case", ["has", "Población"],
-            ["concat", "\nPob: ", ["to-string", ["get", "Población"]]],
-            ""
-          ]
-        ] as any,
-        "text-size": 11,
-        "text-offset": [0, 1.3],
-        "text-anchor": "top",
-        "text-line-height": 1.3,
-        "text-allow-overlap": true,
-        "text-ignore-placement": true,
-      } as any,
-      paint: {
-        "text-color": "#ffe0b2",
-        "text-halo-color": "#0f1117",
-        "text-halo-width": 2,
+        "circle-stroke-width": 0.5,
       },
     });
   }
 
-  // Capas auxiliares transparentes para mantener tiles cargados aunque las capas principales estén ocultas.
-  // Necesario para que querySourceFeatures funcione en el panel de camposres_comind.
-  if (!map.getLayer("_helper-asentamientos")) {
+  /*== Áreas Naturales Protegidas — Ahome ==*/
+  if (!map.getSource("anp_ahome")) {
+    map.addSource("anp_ahome", { type: "vector", url: "pmtiles://data/anp_ahome_sin_clipped.pmtiles" });
+  }
+  if (!map.getLayer("anp_ahome")) {
     map.addLayer({
-      id: "_helper-asentamientos",
-      type: "circle",
-      source: "asentamientos",
-      "source-layer": "asent_com_inpi_tile",
-      paint: { "circle-opacity": 0, "circle-radius": 0 },
+      id: "anp_ahome",
+      type: "fill",
+      source: "anp_ahome",
+      "source-layer": "anp_ahome_sin_clipped_tile",
+      paint: { "fill-color": "#AEEA00", "fill-opacity": 0.4, "fill-antialias": false },
     });
   }
-  // Overlay de hover/pin para punto LocalidadesSedeINPI
+
+  /*== Cuerpos de Agua — sub-capas por condición ==*/
+  if (!map.getSource("cuerpos_agua")) {
+    map.addSource("cuerpos_agua", { type: "vector", url: "pmtiles://data/cuerpos_agua_ahome.pmtiles" });
+  }
+  const cuerposAguaCats: { id: string; condicion: string; color: string }[] = [
+    { id: "cuerpos_agua_perenne",  condicion: "Perenne",      color: "#0288D1" },
+    { id: "cuerpos_agua_intermit", condicion: "Intermitente", color: "#81D4FA" },
+  ];
+  for (const ca of cuerposAguaCats) {
+    if (!map.getLayer(ca.id)) {
+      map.addLayer({
+        id: ca.id,
+        type: "fill",
+        source: "cuerpos_agua",
+        "source-layer": "cuerpos_agua_ahome_tile",
+        filter: ["==", ["get", "condicion"], ca.condicion],
+        paint: { "fill-color": ca.color, "fill-opacity": 0.55, "fill-antialias": false },
+      });
+    }
+  }
+
+  /*== Uso de Suelo — sub-capas filtradas por descripcion ==*/
+  if (!map.getSource("uso_suelo")) {
+    map.addSource("uso_suelo", { type: "vector", url: "pmtiles://data/uso_suelo_ahome_clipped.pmtiles" });
+  }
+  const usoSueloCats: { id: string; descripcion: string; color: string }[] = [
+    { id: "uso_suelo_acuicola",    descripcion: "Acuícola",                                    color: "#00ACC1" },
+    { id: "uso_suelo_riego_anual", descripcion: "Agricultura de riego anual",                  color: "#388E3C" },
+    { id: "uso_suelo_riego_semi",  descripcion: "Agricultura de riego anual y semipermanente", color: "#66BB6A" },
+    { id: "uso_suelo_riego_perm",  descripcion: "Agricultura de riego permanente",             color: "#1B5E20" },
+    { id: "uso_suelo_temporal",    descripcion: "Agricultura de temporal anual",               color: "#AED581" },
+    { id: "uso_suelo_asent_hum",   descripcion: "Asentamientos humanos",                       color: "#FF7043" },
+  ];
+  for (const cat of usoSueloCats) {
+    if (!map.getLayer(cat.id)) {
+      map.addLayer({
+        id: cat.id,
+        type: "fill",
+        source: "uso_suelo",
+        "source-layer": "uso_suelo_ahome_clipped_tile",
+        filter: ["==", ["get", "descripcion"], cat.descripcion],
+        paint: { "fill-color": cat.color, "fill-opacity": 0.5, "fill-antialias": false },
+      });
+    }
+  }
+
+  // Overlay de hover/pin para puntos
   if (!map.getSource("hover-point")) {
     map.addSource("hover-point", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   }
@@ -881,7 +610,31 @@ const addVectorLayers = (map: maplibregl.Map) => {
 
 };
 
-const mexicoBounds: [LngLatLike, LngLatLike] = [[-137.82575, 7.10986], [-65.55923, 34.86389]];
+const ahomeBounds: [LngLatLike, LngLatLike] = [[-109.62, 25.0], [-108.1, 26.4]];
+
+/*== Genera ImageData para iconos de símbolo (cuadrado / cruz) con efecto blur translúcido ==*/
+const createMapIcon = (shape: "square" | "cross", color: string, size = 32): ImageData => {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = size * 0.38;
+  ctx.globalAlpha = 0.9;
+  if (shape === "square") {
+    const pad = 7;
+    ctx.fillRect(pad, pad, size - pad * 2, size - pad * 2);
+  } else {
+    const arm = Math.round(size * 0.30);
+    const c = size / 2;
+    const h = arm / 2;
+    ctx.fillRect(3, c - h, size - 6, arm);
+    ctx.fillRect(c - h, 3, arm, size - 6);
+  }
+  return ctx.getImageData(0, 0, size, size);
+};
 
 /*== Crear el componente Map ==*/
 const Map: React.FC<MapProps> = ({
@@ -930,6 +683,7 @@ const routeIdCounter = useRef(0);
   const [layersVisibility2, setLayersVisibility2] = useState<Record<string, boolean>>({});
   const [layersOpacity2, setLayersOpacity2] = useState<Record<string, number>>({});
   const [sectionOrders2, setSectionOrders2] = useState<string[][]>([]);
+  const [groupChildOrders2, setGroupChildOrders2] = useState<Record<string, string[]>>({});
   const [isMeasuring2, setIsMeasuring2] = useState(false);
   const [isMeasuringLine2, setIsMeasuringLine2] = useState(false);
   const [currentPoints2, setCurrentPoints2] = useState<LngLatLike[]>([]);
@@ -1219,20 +973,6 @@ const routeIdCounter = useRef(0);
       }
     };
 
-    /*== Helpers de highlight de polígono hover ==*/
-    const setHoverPolygon = (geomOrFeatures: any, color: string) => {
-      const src = map.getSource("hover-polygon") as GeoJSONSource | undefined;
-      if (!src) return;
-      const features = Array.isArray(geomOrFeatures)
-        ? geomOrFeatures.map((f: any) => ({ type: "Feature", geometry: f.geometry, properties: { color } }))
-        : [{ type: "Feature", geometry: geomOrFeatures, properties: { color } }];
-      src.setData({ type: "FeatureCollection", features } as any);
-    };
-    const clearHoverPolygon = () => {
-      (map.getSource("hover-polygon") as GeoJSONSource | undefined)
-        ?.setData({ type: "FeatureCollection", features: [] } as any);
-    };
-
     /*== Helpers de highlight de punto hover (para capas circle) ==*/
     const setHoverPoint = (geom: any, color: string) => {
       if (_pinnedPuebloIdRef.current != null) return;
@@ -1309,10 +1049,10 @@ const routeIdCounter = useRef(0);
           ).join("") +
           `</div>`
         : "";
-      return `<div style="background:#0f1117;border:1px solid ${accent};border-radius:8px;padding:10px 12px;width:215px;box-sizing:border-box;box-shadow:0 3px 16px ${accent}44">` +
-        `<div style="display:flex;align-items:center;gap:7px;margin-bottom:${rows.length ? "7" : "0"}px">` +
-        `<span style="display:inline-block;width:9px;height:9px;flex-shrink:0;border-radius:50%;background:${accent};box-shadow:0 0 5px ${accent}"></span>` +
-        `<strong style="color:${accent};font-size:12px;letter-spacing:0.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:175px;display:block">${title}</strong>` +
+      return `<div style="background:#0f1117;border:1px solid ${accent};border-radius:8px;padding:10px 12px;min-width:200px;max-width:280px;box-sizing:border-box;box-shadow:0 3px 16px ${accent}44">` +
+        `<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:${rows.length ? "7" : "0"}px">` +
+        `<span style="display:inline-block;width:9px;height:9px;flex-shrink:0;border-radius:50%;background:${accent};box-shadow:0 0 5px ${accent};margin-top:2px"></span>` +
+        `<strong style="color:${accent};font-size:12px;letter-spacing:0.3px;word-break:break-word;line-height:1.35">${title}</strong>` +
         `</div>${body}</div>`;
     };
 
@@ -1331,624 +1071,182 @@ const routeIdCounter = useRef(0);
       });
     };
 
-    /*== Tooltip oscuro para camposres_comind ==*/
-    const getComindHTML = (p: any) => tc("#D50000", p.NOM_COM ?? "—", [
-      ["Estado",    p.NOM_ENT ?? "—"],
+    /*== Tooltips Área de Impacto Directa (sub-capas por Name) ==*/
+    const aipTooltipLayers: { id: string; color: string }[] = [
+      { id: "aip_area_t1",     color: "#FF073A" },
+      { id: "aip_area_t2",     color: "#FF6B00" },
+      { id: "aip_area_t3",     color: "#FFE500" },
+      { id: "aip_area_t4",     color: "#39FF14" },
+      { id: "aip_area_t5",     color: "#00FFFF" },
+      { id: "aip_area_t6",     color: "#00B3FF" },
+      { id: "aip_area_t7",     color: "#7B2FFF" },
+      { id: "aip_area_t8",     color: "#FF00FF" },
+      { id: "aip_area_t9",     color: "#FF1493" },
+      { id: "aip_area_t10",    color: "#ADFF2F" },
+      { id: "aip_area_t11",    color: "#00FF7F" },
+      { id: "aip_area_t12",    color: "#00FFBF" },
+      { id: "aip_area_t13",    color: "#FF9F00" },
+      { id: "aip_derecho_via", color: "#FF6EC7" },
+      { id: "aip_pol_norte",   color: "#CCFF00" },
+      { id: "aip_predio_sur",  color: "#FF3EFF" },
+      { id: "aip_camino",      color: "#4DFFFF" },
+    ];
+    for (const at of aipTooltipLayers) {
+      addHoverTooltip(at.id, (p) => tc(at.color, p.Name ?? "—", [
+        ["Descripción", p.Description ?? "—"],
+      ]));
+    }
+
+    /*== Tooltips E-escenarios: sub-capas por Name ==*/
+    const eSubTooltipLayers: { id: string; color: string }[] = [
+      { id: "e01_zona",        color: "#E91E63" },
+      { id: "e01_predio",      color: "#39FF14" },
+      { id: "e02_zona",        color: "#F48FB1" },
+      { id: "e02_predio",      color: "#00FFFF" },
+      { id: "e03_zona",        color: "#9C27B0" },
+      { id: "e03_predio",      color: "#ADFF2F" },
+      { id: "e04_zona",        color: "#CE93D8" },
+      { id: "e04_predio",      color: "#FF073A" },
+      { id: "e05a_zona",       color: "#00BCD4" },
+      { id: "e05a_predio",     color: "#FF6EC7" },
+      { id: "e05b_zona",       color: "#80DEEA" },
+      { id: "e05b_predio",     color: "#FF6B00" },
+      { id: "e06_zona",        color: "#009688" },
+      { id: "e06_predio",      color: "#FF3EFF" },
+      { id: "e07a",            color: "#4CAF50" },
+      { id: "e07b",            color: "#A5D6A7" },
+      { id: "e08_zona",        color: "#FF9800" },
+      { id: "e08_adecuacion",  color: "#7B2FFF" },
+      { id: "e09_zona",        color: "#FFCC80" },
+      { id: "e09_adecuacion",  color: "#00FF7F" },
+      { id: "e13_zona",        color: "#FFEB3B" },
+      { id: "e13_predio",      color: "#00B3FF" },
+      { id: "e14_zona",        color: "#FFF176" },
+      { id: "e14_predio",      color: "#FF1493" },
+      { id: "esc12_t1",        color: "#FF073A" },
+      { id: "esc12_t2",        color: "#FF6B00" },
+      { id: "esc12_t3",        color: "#FFE500" },
+      { id: "esc12_t4",        color: "#39FF14" },
+      { id: "esc12_t5",        color: "#00FFFF" },
+      { id: "esc12_t6",        color: "#00B3FF" },
+      { id: "esc12_t7",        color: "#7B2FFF" },
+      { id: "esc12_t8",        color: "#FF00FF" },
+      { id: "esc12_t9",        color: "#FF1493" },
+      { id: "esc12_t10",       color: "#ADFF2F" },
+      { id: "esc12_t11",       color: "#00FF7F" },
+      { id: "esc12_t12",       color: "#00FFBF" },
+      { id: "esc12_t13",       color: "#FF9F00" },
+      { id: "esc12_ddv",       color: "#FF6EC7" },
+      { id: "esc12_dvia",      color: "#CCFF00" },
+      { id: "esc12_znube",     color: "#F44336" },
+      { id: "esc12_nube2",     color: "#FF4500" },
+      { id: "esc12_pnorte",    color: "#FFD700" },
+      { id: "esc12_psur",      color: "#FF3EFF" },
+      { id: "esc12_a",         color: "#4DFFFF" },
+      { id: "esc12_b",         color: "#00FF41" },
+      { id: "esc12_c",         color: "#FF5EFF" },
+      { id: "esc12_camino",    color: "#00BFFF" },
+    ];
+    for (const es of eSubTooltipLayers) {
+      addHoverTooltip(es.id, (p) => tc(es.color, p.Name ?? p.name ?? es.id.toUpperCase(), [
+        ...(p.Description ?? p.description ? [["Descripción", p.Description ?? p.description] as [string, string]] : []),
+      ]));
+    }
+
+    /*== Tooltips Centros Escolares ==*/
+    const educTooltipDefs: { id: string; label: string; color: string }[] = [
+      { id: "educ_preesc_pub",    label: "Preescolar Público",    color: "#FFD54F" },
+      { id: "educ_preesc_priv",   label: "Preescolar Privado",    color: "#FFA726" },
+      { id: "educ_prim_pub",      label: "Primaria Pública",      color: "#66BB6A" },
+      { id: "educ_prim_priv",     label: "Primaria Privada",      color: "#26A69A" },
+      { id: "educ_media_sup_pub", label: "Media Superior Pública",color: "#42A5F5" },
+      { id: "educ_media_sup_priv",label: "Media Superior Privada",color: "#7E57C2" },
+      { id: "educ_media_tec_priv",label: "Media Técnica Privada", color: "#EC407A" },
+      { id: "educ_superior_pub",  label: "Superior Pública",      color: "#26C6DA" },
+      { id: "educ_superior_priv", label: "Superior Privada",      color: "#AB47BC" },
+    ];
+    for (const ed of educTooltipDefs) {
+      addHoverTooltip(ed.id, (p) => tc(ed.color, p.nom_estab ?? p.nombre ?? ed.label, [
+        ["Municipio", p.nom_mun ?? "—"],
+        ["Localidad", p.nom_loc ?? "—"],
+      ]));
+      map.on("mouseenter", ed.id, () => { if (map.getLayer(ed.id)) map.setLayoutProperty(ed.id, "icon-size", 1.05); });
+      map.on("mouseleave", ed.id, () => { if (map.getLayer(ed.id)) map.setLayoutProperty(ed.id, "icon-size", 0.75); });
+    }
+
+    /*== Tooltip Ejidos Afectados ==*/
+    const ejidosTooltipDefs = [
+      { id: "ejidos_rosendo",   color: "#1e5b4f" },
+      { id: "ejidos_topoviejo", color: "#002f2a" },
+    ];
+    for (const ej of ejidosTooltipDefs) {
+      addHoverTooltip(ej.id, (p) => tc(ej.color, p.NOM_NUC ?? "—", [
+        ["Municipio", p.MUNICIPIO ?? "—"],
+        ["Clave",     p.CLAVE ?? "—"],
+      ]));
+    }
+
+    /*== Tooltips Hospitales ==*/
+    const saluTooltipDefs = [
+      { id: "salu_pub",  label: "Hospital Público",  color: "#EF5350" },
+      { id: "salu_priv", label: "Hospital Privado",  color: "#FF8A65" },
+    ];
+    for (const sl of saluTooltipDefs) {
+      addHoverTooltip(sl.id, (p) => tc(sl.color, p.nom_estab ?? sl.label, [
+        ["Municipio", p.nom_mun ?? "—"],
+        ["Localidad", p.nom_loc ?? "—"],
+      ]));
+      map.on("mouseenter", sl.id, () => { if (map.getLayer(sl.id)) map.setLayoutProperty(sl.id, "icon-size", 1.25); });
+      map.on("mouseleave", sl.id, () => { if (map.getLayer(sl.id)) map.setLayoutProperty(sl.id, "icon-size", 0.95); });
+    }
+
+    /*== Tooltip Localidades Indígenas INPI ==*/
+    addHoverTooltip("localidades_inpi", (p) => tc("#ec3db8", p.NOM_LOC ?? "—", [
       ["Municipio", p.NOM_MUN ?? "—"],
-      ["Pueblo",    p.Pueblo ?? "—"],
-      ["Pob. total", p.POBTOT != null ? Number(p.POBTOT).toLocaleString("es-MX") : "—", "#ff8a80"],
-    ]);
+      ["Estado",    p.NOM_ENT ?? "—"],
+    ]));
 
-    // Cursor por la capa rendered (círculo exacto); tooltip via bbox centralizado
-    let _comindHoverShowing = false;
-    map.on("mouseenter", "camposres_comind", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mouseleave", "camposres_comind", () => {
-      if (!checkMeasurement()) {
-        map.getCanvas().style.cursor = "";
-        if (_comindHoverShowing) { tooltipManager.hide("camposres_comind"); clearHoverPoint(); _comindHoverShowing = false; }
-      }
-    });
-    // Bbox ±8px: detecta el círculo antes de que el cursor esté exactamente encima
-    map.on("mousemove", (e: maplibregl.MapMouseEvent) => {
-      if (checkMeasurement() || !map.getLayer("camposres_comind")) return;
-      const bbox: [maplibregl.PointLike, maplibregl.PointLike] = [
-        [e.point.x - 8, e.point.y - 8],
-        [e.point.x + 8, e.point.y + 8],
-      ];
-      const feats = map.queryRenderedFeatures(bbox, { layers: ["camposres_comind"] });
-      if (feats.length > 0) {
-        const f = feats[0] as any;
-        if (f.properties) {
-          tooltipManager.show("camposres_comind", getComindHTML(f.properties), e.lngLat);
-          setHoverPoint(f.geometry, "#D50000");
-          _comindHoverShowing = true;
-        }
-      } else if (_comindHoverShowing) {
-        tooltipManager.hide("camposres_comind");
-        clearHoverPoint();
-        _comindHoverShowing = false;
-      }
-    });
+    /*== Tooltip Asentamientos Comunidad ==*/
+    addHoverTooltip("asent_com", (p) => tc("#ff7626", p.Nombre ?? p.Localidad ?? "—", [
+      ["Categoría",  p["Categoría"] ?? p.Categoria ?? "—"],
+      ["Municipio",  p.Municipio ?? "—"],
+      ["Población",  p["Población"] ?? p.Poblacion ?? "—", "#ff7626"],
+    ]));
 
-    /*== camposres_comind click: panel React fijo + zoom + asentamientos ==*/
-    const NO_MATCH = ["==", ["literal", 1], 0] as any;
+    /*== Tooltip ANP Ahome ==*/
+    addHoverTooltip("anp_ahome", (p) => tc("#AEEA00", p.nom_anp ?? "—", [
+      ["Región",     p.nom_region ?? "—"],
+      ["Superficie", p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—", "#AEEA00"],
+    ]));
 
-    const clearComindHighlight = () => {
-      _pinnedComindSetRef.current(null);
-      _pinnedComindIdRef.current = null;
-      if (map.getLayer("asentamientos-comind-dots"))
-        map.setFilter("asentamientos-comind-dots", NO_MATCH);
-      if (map.getLayer("asentamientos-comind-labels"))
-        map.setFilter("asentamientos-comind-labels", NO_MATCH);
-    };
-
-    map.on("click", "camposres_comind", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      const props = f.properties;
-      if (!props) return;
-
-      const comId: number | null = props.ID != null ? Number(props.ID) : null;
-
-      // segundo click en la misma comunidad: desanclar
-      if (_pinnedComindIdRef.current != null && _pinnedComindIdRef.current === comId) {
-        clearComindHighlight();
-        return;
-      }
-
-      _pinnedComindIdRef.current = comId;
-      tooltipManager.hide("camposres_comind");
-
-      // Mostrar panel React fijo con los datos de la comunidad
-      _pinnedComindSetRef.current(props);
-
-      // Guardar vista actual antes de volar, para restaurarla al cerrar
-      _prevMapViewRef.current = {
-        center: map.getCenter(),
-        zoom: map.getZoom(),
-        bearing: map.getBearing(),
-        pitch: map.getPitch(),
-      };
-
-      // Zoom a las coordenadas de la comunidad para que los asentamientos queden en viewport
-      const lat = Number(props.Latitud ?? e.lngLat.lat);
-      const lng = Number(props.Longitud ?? e.lngLat.lng);
-      map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 11), duration: 800 });
-
-      // Join directo: asent_com_inpi.ID_Archivo == campos_reservas-com_ind.ID
-      if (comId != null) {
-        const filter = ["==", ["to-number", ["get", "ID_Archivo"]], comId] as any;
-        if (map.getLayer("asentamientos-comind-dots"))
-          map.setFilter("asentamientos-comind-dots", filter);
-        if (map.getLayer("asentamientos-comind-labels"))
-          map.setFilter("asentamientos-comind-labels", filter);
-
-        // Tras el vuelo: contar asentamientos y obtener mayor Población
-        const runQuery = () => {
-          if (_pinnedComindIdRef.current !== comId) return;
-          const rawAsent = map.querySourceFeatures("asentamientos", { sourceLayer: "asent_com_inpi_tile" });
-          const seen = new Set<string>();
-          let maxPob = 0;
-          rawAsent.forEach(f => {
-            if (Number(f.properties?.ID_Archivo) !== comId) return;
-            const key = `${f.properties?.Latitud}|${f.properties?.Longitud}`;
-            if (seen.has(key)) return;
-            seen.add(key);
-            const pob = Number(String(f.properties?.Población ?? "0").replace(/,/g, ""));
-            if (pob > maxPob) maxPob = pob;
-          });
-          _pinnedComindSetRef.current(prev =>
-            prev ? { ...prev, _asentCount: seen.size, _pobtot: maxPob > 0 ? maxPob : null } : null
-          );
-        };
-        // Esperar a que el flyTo (800ms) termine y los tiles carguen
-        setTimeout(runQuery, 1200);
-      }
-    });
-
-    /*== Tooltips oscuros para Zonas Geológicas y Petroleras ==*/
-    const zonaLayers: { id: string; label: string; color: string; glow: string }[] = [
-      { id: "zonaap",      label: "Aguas Profundas",    color: "#0070FF", glow: "rgba(0,112,255,0.4)" },
-      { id: "zonaas",      label: "Aguas Someras",      color: "#00B0FF", glow: "rgba(0,176,255,0.4)" },
-      { id: "zonaburgos",  label: "Burgos",             color: "#1DE9B6", glow: "rgba(29,233,182,0.4)" },
-      { id: "zonacuencas", label: "Cuencas del Sureste",color: "#7C4DFF", glow: "rgba(124,77,255,0.4)" },
-      { id: "zonatam",     label: "Tampico-Misantla",   color: "#3D5AFE", glow: "rgba(61,90,254,0.4)" },
-      { id: "zonaver",     label: "Veracruz",           color: "#00F5FF", glow: "rgba(0,245,255,0.4)" },
+    /*== Tooltips Cuerpos de Agua (sub-capas por condición) ==*/
+    const cuerposAguaTooltipLayers: { id: string; color: string }[] = [
+      { id: "cuerpos_agua_perenne",  color: "#0288D1" },
+      { id: "cuerpos_agua_intermit", color: "#81D4FA" },
     ];
-    const getZonaHTML = (p: any, color: string, _glow: string, label: string) =>
-      tc(color, `Zona ${label}`, [
-        ["Campo",    p.campo ?? p.Campo ?? "—"],
-        ["Tipo Pozo", p.pozo ?? p.Pozo ?? "—"],
-        ["Entidad",  p.entidad ?? p.Entidad ?? "—"],
-        ["Ubicación", p.ubicacin ?? p.ubicacion ?? "—"],
-      ]);
-    zonaLayers.forEach(({ id, label, color, glow }) => {
-      map.on("mouseenter", id, () => {
-        if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mousemove", id, (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        const f = e.features[0] as any;
-        if (f.properties) tooltipManager.show(id, getZonaHTML(f.properties, color, glow, label), e.lngLat);
-        setHoverPoint(f.geometry, color);
-      });
-      map.on("mouseleave", id, () => {
-        if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(id); clearHoverPoint(); }
-      });
-    });
+    for (const ca of cuerposAguaTooltipLayers) {
+      addHoverTooltip(ca.id, (p) => tc(ca.color, p.nom_geo ?? p.nom_obj ?? "—", [
+        ["Condición", p.condicion ?? "—"],
+        ["Tipo",      p.term_gen ?? p.nom_cono ?? "—"],
+      ]));
+    }
 
-    /*== Tooltip oscuro para Territorios Pueblos Indígenas (fill layer) ==*/
-    const getTerrpiHTML = (p: any) =>
-      tc("#FF00E5", p.pueblo ?? p.Pueblo ?? p.PUEBLO ?? p.nombre ?? "—", []);
-    map.on("mouseenter", "territoriospi", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mousemove", "territoriospi", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      if (f.properties) tooltipManager.show("territoriospi", getTerrpiHTML(f.properties), e.lngLat);
-    });
-    map.on("mouseleave", "territoriospi", () => {
-      if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("territoriospi"); clearHoverPolygon(); }
-    });
-
-    const comindPopup = (
-      e: maplibregl.MapMouseEvent & { features?: Feature[] },
-    ) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const props = (e.features[0] as any).properties;
-      if (props) {
-        popup
-          .setLngLat(e.lngLat)
-          .setHTML(
-            `<strong>Entidad:</strong> ${props.NOM_ENT}<br/><strong>Municipio:</strong> ${props.NOM_MUN}<br/><strong>Localidad:</strong> ${props.NOM_LOC}<br/><strong>Comunidad:</strong> ${props.NOM_COM}<br/>`,
-          )
-          .addTo(map);
-      }
-    };
-    /*== Eventos para comind con cursor pointer ==*/
-    map.on("click", "comind", comindPopup);
-    /*== Cambiar cursor a pointer al entrar ==*/
-    map.on("mouseenter", "comind", () => {
-      if (!checkMeasurement()) {
-        map.getCanvas().style.cursor = "pointer";
-      }
-    });
-    /*== Restaurar cursor y quitar popup al salir ==*/
-    map.on("mouseleave", "comind", () => {
-      if (!checkMeasurement()) {
-        map.getCanvas().style.cursor = "";
-        popup.remove();
-      }
-    });
-
-    /*== LocalidadesSedeINPI: tooltip hover + pin + asentamientos vinculados ==*/
-    const color_loc = "#ec3db8";
-    const pinnedLocPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: "custom-tooltip" });
-
-    const getLocHTML = (p: any, pinned = false) => {
-      const nombre = p.NOM_COM ?? p.NOM_LOC ?? p.nombre ?? "—";
-      const base = tc(color_loc, nombre, [
-        ["Estado",    p.NOM_ENT ?? "—"],
-        ["Municipio", p.NOM_MUN ?? "—"],
-        ["Pueblo",    p.Pueblo ?? p.pueblo ?? "—"],
-        ["Pob. total", p.POBTOT != null ? Number(p.POBTOT).toLocaleString("es-MX") : "—", color_loc],
-      ]);
-      if (!pinned) return base;
-      return `<div style="position:relative">${base}` +
-        `<button onclick="window.__closePinnedLoc&&window.__closePinnedLoc()" ` +
-        `style="position:absolute;top:6px;right:6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;font-weight:bold;line-height:18px;text-align:center;padding:0">✕</button></div>`;
-    };
-
-    const startAsentPulse = () => {
-      if (_asentPulseId.current) cancelAnimationFrame(_asentPulseId.current);
-      const animate = (time: number) => {
-        _asentPulseId.current = requestAnimationFrame(animate);
-        const t = (Math.sin(time / 500) + 1) / 2;
-        try {
-          if (map.getLayer("asentamientos-highlight")) {
-            map.setPaintProperty("asentamientos-highlight", "circle-radius", 4 + t * 4);
-            map.setPaintProperty("asentamientos-highlight", "circle-opacity", 0.7 + t * 0.25);
-          }
-        } catch {}
-      };
-      _asentPulseId.current = requestAnimationFrame(animate);
-    };
-
-    const stopAsentPulse = () => {
-      if (_asentPulseId.current) {
-        cancelAnimationFrame(_asentPulseId.current);
-        _asentPulseId.current = null;
-      }
-      try {
-        if (map.getLayer("asentamientos-highlight")) {
-          map.setPaintProperty("asentamientos-highlight", "circle-radius", 5);
-          map.setPaintProperty("asentamientos-highlight", "circle-opacity", 0.95);
-        }
-      } catch {}
-    };
-
-    const setLocHighlight = (geom: any, idPueblo: number | null) => {
-      const src = map.getSource("hover-point") as GeoJSONSource | undefined;
-      if (src && geom) src.setData({ type: "FeatureCollection", features: [{ type: "Feature", geometry: geom, properties: {} }] } as any);
-      if (idPueblo != null && map.getLayer("asentamientos-highlight"))
-        map.setFilter("asentamientos-highlight", ["==", ["get", "ID_Pueblo"], idPueblo]);
-    };
-    const clearLocHighlight = () => {
-      stopAsentPulse();
-      (map.getSource("hover-point") as GeoJSONSource | undefined)
-        ?.setData({ type: "FeatureCollection", features: [] } as any);
-      if (map.getLayer("asentamientos-highlight"))
-        map.setFilter("asentamientos-highlight", ["==", ["get", "ID_Pueblo"], -1]);
-      if (map.getLayer("asentamientos-labels"))
-        map.setFilter("asentamientos-labels", ["==", ["get", "ID_Pueblo"], -1]);
-    };
-
-    const unpinLoc = () => {
-      _pinnedPuebloIdRef.current = null;
-      pinnedLocPopup.remove();
-      clearLocHighlight();
-      (window as any).__closePinnedLoc = undefined;
-    };
-
-    pinnedLocPopup.on("close", () => {
-      _pinnedPuebloIdRef.current = null;
-      clearLocHighlight();
-      (window as any).__closePinnedLoc = undefined;
-    });
-
-    map.on("mouseenter", "LocalidadesSedeINPI", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mousemove", "LocalidadesSedeINPI", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      if (_pinnedPuebloIdRef.current != null) return; // hay un pin activo, no sobreescribir
-      const f = e.features[0] as any;
-      const props = f.properties;
-      if (!props) return;
-      tooltipManager.show("LocalidadesSedeINPI", getLocHTML(props, false), e.lngLat);
-      setLocHighlight(f.geometry, props.ID_Pueblo ?? null);
-    });
-    map.on("mouseleave", "LocalidadesSedeINPI", () => {
-      if (checkMeasurement() || _pinnedPuebloIdRef.current != null) return;
-      map.getCanvas().style.cursor = "";
-      tooltipManager.hide("LocalidadesSedeINPI");
-      clearLocHighlight();
-    });
-    map.on("click", "LocalidadesSedeINPI", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      const props = f.properties;
-      if (!props) return;
-      const idPueblo = props.ID_Pueblo ?? null;
-      if (_pinnedPuebloIdRef.current === idPueblo) {
-        // segundo click en el mismo: desanclar
-        unpinLoc();
-      } else {
-        _pinnedPuebloIdRef.current = idPueblo;
-        tooltipManager.hide("LocalidadesSedeINPI");
-        (window as any).__closePinnedLoc = unpinLoc;
-        pinnedLocPopup.setLngLat(e.lngLat).setHTML(getLocHTML(props, true)).addTo(map);
-        setLocHighlight(f.geometry, idPueblo);
-        // Mostrar labels de asentamientos vinculados y activar pulso
-        if (idPueblo != null) {
-          if (map.getLayer("asentamientos-labels"))
-            map.setFilter("asentamientos-labels", ["==", ["get", "ID_Pueblo"], idPueblo]);
-          startAsentPulse();
-        }
-      }
-    });
-
-    /*== Tooltips Provincias Geológicas (12 capas fill) ==*/
-    const provinciasColores: Record<string, string> = {
-      burgos: "#E57373", chihuahua: "#90A4AE",
-      cinturon_plegado_chiapas: "#F06292", cinturon_plegado_smo: "#BA68C8",
-      golfo_california: "#4FC3F7", golfo_mexico_profundo: "#9575CD",
-      plataforma_yucatan: "#4DB6AC", sabinas_burro_picachos: "#A1887F",
-      sureste: "#7986CB", tampico_misantla: "#4DD0E1",
-      veracruz: "#AED581", vizcaino_purisima_iray: "#81C784",
-    };
-    const getProvinciaHTML = (p: any, color: string) =>
-      tc(color, p.nombre ?? p.NOMBRE ?? "—", [
-        ["Situación", p.situacin ?? p.situacion ?? p.situación ?? "—"],
-        ["Ubicación", p.ubicacin ?? p.ubicacion ?? p.ubicación ?? "—"],
-        ["Área km²", p.rea_km2 != null ? Number(p.rea_km2).toLocaleString("es-MX", { maximumFractionDigits: 0 }) : "—", color],
-      ]);
-
-    [
-      "burgos", "chihuahua", "cinturon_plegado_chiapas", "cinturon_plegado_smo",
-      "golfo_california", "golfo_mexico_profundo", "plataforma_yucatan",
-      "sabinas_burro_picachos", "sureste", "tampico_misantla", "veracruz", "vizcaino_purisima_iray",
-    ].forEach((layerId) => {
-      const color = provinciasColores[layerId] ?? "#ffffff";
-      map.on("mouseenter", layerId, () => {
-        if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mousemove", layerId, (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        const f = e.features[0] as any;
-        if (!f.properties) return;
-        tooltipManager.show(layerId, getProvinciaHTML(f.properties, color), e.lngLat);
-      });
-      map.on("mouseleave", layerId, () => {
-        if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
-      });
-    });
-
-    /*== Tooltips Diputados LXVI (5 capas fill, por partido) ==*/
-    const diputadosTooltipColores: Record<string, string> = {
-      diputados_morena: "#611232",
-      diputados_pri:    "#ff0707",
-      diputados_pan:    "#3e49ec",
-      diputados_pvem:   "#01803a",
-      diputados_pt:     "#9b0f47",
-    };
-    const diputadosTooltipPartido: Record<string, string> = {
-      diputados_morena: "MORENA",
-      diputados_pri:    "PRI",
-      diputados_pan:    "PAN",
-      diputados_pvem:   "PVEM",
-      diputados_pt:     "PT",
-    };
-    const getDiputadoHTML = (p: any, color: string, partido: string) =>
-      tc(color, partido, [
-        ["Diputado/a",  p.Diputado ?? p.diputado ?? p.Nombre ?? p.nombre ?? "—"],
-        ["Grupo",       p.Grupo_Parlamentario ?? p.grupo_parlamentario ?? "—"],
-        ["Entidad",     p.Entidad ?? p.entidad ?? p.NOM_ENT ?? "—"],
-        ["Distrito",    p.Distrito ?? p.distrito ?? p.DISTRITO ?? "—"],
-      ]);
-
-    ["diputados_morena", "diputados_pri", "diputados_pan", "diputados_pvem", "diputados_pt"].forEach((layerId) => {
-      const color = diputadosTooltipColores[layerId];
-      const partido = diputadosTooltipPartido[layerId];
-      map.on("mouseenter", layerId, () => {
-        if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mousemove", layerId, (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        if (map.getLayoutProperty(layerId, "visibility") !== "visible") return;
-        const opacity = map.getPaintProperty(layerId, "fill-opacity") as number ?? 1;
-        if (opacity <= 0) return;
-        const f = e.features[0] as any;
-        if (f.properties) {
-          tooltipManager.show(layerId, getDiputadoHTML(f.properties, color, partido), e.lngLat);
-        }
-      });
-      map.on("mouseleave", layerId, () => {
-        if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
-      });
-    });
-
-    /*== Tooltips Riesgo Hídrico Integrado (4 capas fill) ==*/
-    const riesgoColores: Record<string, string> = {
-      riesgohic: "#D32F2F", riesgohia: "#F57C00",
-      riesgohim: "#F9A825", riesgohib: "#388E3C",
-    };
-    const getRiesgoHTML = (p: any, color: string) =>
-      tc(color, p.RiesgoHídrico ?? p.RiesgoHidrico ?? p["RiesgoHídrico"] ?? "—", [
-        ["Provincia", p.Provincia ?? "—"],
-        ["Entidad",   p.Entidad_1 ?? p.Entidad ?? "—"],
-      ]);
-
-    ["riesgohic", "riesgohia", "riesgohim", "riesgohib"].forEach((layerId) => {
-      const color = riesgoColores[layerId];
-      map.on("mouseenter", layerId, () => {
-        if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mousemove", layerId, (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        const f = e.features[0] as any;
-        if (f.properties) tooltipManager.show(layerId, getRiesgoHTML(f.properties, color), e.lngLat);
-      });
-      map.on("mouseleave", layerId, () => {
-        if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
-      });
-    });
-
-    /*== Tooltips Pozos Fracking y No Convencionales (5 capas circle) ==*/
-    const pozosColores: Record<string, string> = {
-      pozosap: "#FF3D00", pozosc: "#FFAB40",
-      pozosi: "#FF6D00", pozosp: "#1e5b4f", pozoss: "#FFC107",
-    };
-    const getPozoHTML = (p: any, color: string) =>
-      tc(color, p.pozo ?? p.Pozo ?? "—", [
-        ["Campo",          p.campo ?? p.Campo ?? "—"],
-        ["Entidad",        p.entidad ?? p.Entidad ?? "—"],
-        ["Clasificación",  p.clasificac ?? "—"],
-        ["Estado",         p.estado_act ?? "—", color],
-        ["Tipo",           p.tipo_de_hi ?? "—"],
-        ["Profundidad",    p.profundida != null ? Number(p.profundida).toLocaleString("es-MX") + " m" : "—"],
-        ["Trayectoria",    p.trayectori ?? "—"],
-        ["Zona",           p.Zona ?? p.zona ?? "—"],
-        ["Fracturamiento", p.Fracturami ?? p.fracturami ?? "—"],
-      ]);
-
-    ["pozosap", "pozosc", "pozosi", "pozosp", "pozoss"].forEach((layerId) => {
-      const color = pozosColores[layerId];
-      map.on("mouseenter", layerId, () => {
-        if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mousemove", layerId, (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        const f = e.features[0] as any;
-        if (f.properties) tooltipManager.show(layerId, getPozoHTML(f.properties, color), e.lngLat);
-        setHoverPoint(f.geometry, color);
-      });
-      map.on("mouseleave", layerId, () => {
-        if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPoint(); }
-      });
-    });
-
-    /*== Tooltip Áreas Potenciales No Convencionales ==*/
-    const color_areas = "#FFAB40";
-    const getAreasHTML = (p: any) =>
-      tc(color_areas, p.Provincia ?? p.provincia ?? "—", [
-        ["Hectáreas", p.Ha != null ? Number(p.Ha).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ha" : "—", color_areas],
-      ]);
-    map.on("mouseenter", "areaspotnc", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mousemove", "areaspotnc", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      if (f.properties) tooltipManager.show("areaspotnc", getAreasHTML(f.properties), e.lngLat);
-    });
-    map.on("mouseleave", "areaspotnc", () => {
-      if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("areaspotnc"); clearHoverPolygon(); }
-    });
-
-    /*== Tooltips Campos de Reserva (3 capas fill) ==*/
-    const camposresColores: Record<string, string> = {
-      camposresas: "#52c0ff", camposresm: "#3d1aff", camposrest: "#00a808",
-    };
-    const getCamposresHTML = (p: any, color: string) =>
-      tc(color, p.nombre ?? p.Nombre ?? p.NOMBRE ?? "—", [
-        ["Ubicación",  p.ubicacin ?? p.ubicacion ?? p.Ubicacion ?? "—"],
-        ["Superficie", p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—", color],
-      ]);
-
-    ["camposresas", "camposresm", "camposrest"].forEach((layerId) => {
-      const color = camposresColores[layerId];
-      map.on("mouseenter", layerId, () => {
-        if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mousemove", layerId, (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-        if (checkMeasurement() || !e.features || e.features.length === 0) return;
-        const f = e.features[0] as any;
-        if (!f.properties) return;
-        tooltipManager.show(layerId, getCamposresHTML(f.properties, color), e.lngLat);
-      });
-      map.on("mouseleave", layerId, () => {
-        if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide(layerId); clearHoverPolygon(); }
-      });
-    });
-
-    /*== Tooltip + hover Áreas Naturales Protegidas ==*/
-    const color_anp = "#AEEA00";
-    const getAnpHTML = (p: any) =>
-      tc(color_anp, p.nombre ?? p.Nombre ?? p.NOMBRE ?? "—", [
-        ["Estado",     p.estado ?? p.Estado ?? "—"],
-        ["Región",     p.regin ?? p.region ?? p.Region ?? p.región ?? "—"],
-        ["Superficie", p.superficie != null ? Number(p.superficie).toLocaleString("es-MX") + " ha" : "—", color_anp],
-      ]);
-    map.on("mouseenter", "anp", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mousemove", "anp", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      if (!f.properties) return;
-      tooltipManager.show("anp", getAnpHTML(f.properties), e.lngLat);
-    });
-    map.on("mouseleave", "anp", () => {
-      if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("anp"); clearHoverPolygon(); }
-    });
-
-    /*== Tooltip Asentamientos Humanos (INPI) ==*/
-    const color_asent = "#ad4000";
-    const getAsentHTML = (p: any) =>
-      tc(color_asent, p.Nombre ?? p.Localidad ?? "—", [
-        ["Categoría",  p["Categoría"] ?? p.Categoria ?? "—"],
-        ["Municipio",  p.Municipio ?? "—"],
-        ["Estado",     p["Entidad fe"] ?? "—"],
-        ["Población",  p["Población"] ?? p.Poblacion ?? "—", color_asent],
-      ]);
-    map.on("mouseenter", "asentamientos", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mousemove", "asentamientos", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      if (f.properties) tooltipManager.show("asentamientos", getAsentHTML(f.properties), e.lngLat);
-      setHoverPoint(f.geometry, color_asent);
-    });
-    map.on("mouseleave", "asentamientos", () => {
-      if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("asentamientos"); clearHoverPoint(); }
-    });
-
-    /*== Tooltips División Política: Estados y Municipios — click unificado ==*/
-    const divpolLayers: { id: string; sourceLayer: string; label: string; color: string }[] = [
-      { id: "ent", sourceLayer: "00ent_tile", label: "Estado",    color: "#fdff72" },
-      { id: "mun", sourceLayer: "00mun_tile", label: "Municipio", color: "#90f2ff" },
+    /*== Tooltips Uso de Suelo (sub-capas por descripción) ==*/
+    const usoSueloTooltipLayers: { id: string; color: string }[] = [
+      { id: "uso_suelo_acuicola",    color: "#00ACC1" },
+      { id: "uso_suelo_riego_anual", color: "#388E3C" },
+      { id: "uso_suelo_riego_semi",  color: "#66BB6A" },
+      { id: "uso_suelo_riego_perm",  color: "#1B5E20" },
+      { id: "uso_suelo_temporal",    color: "#AED581" },
+      { id: "uso_suelo_asent_hum",   color: "#FF7043" },
     ];
-    const pinnedDivpol: Record<string, string | number | null> = { ent: null, mun: null };
+    for (const uc of usoSueloTooltipLayers) {
+      addHoverTooltip(uc.id, (p) => tc(uc.color, p.descripcion ?? "—", []));
+    }
 
-    const unpinAllDivpol = () => {
-      divpolLayers.forEach(({ id, sourceLayer }) => {
-        clearDivpolHover(id, sourceLayer);
-        clearDivpolClicked(id, sourceLayer);
-        pinnedDivpol[id] = null;
-        tooltipManager.unpin(`_pin_${id}`);
-      });
-    };
-    (window as any).__closeDivpolPin = unpinAllDivpol;
+    // === placeholder — getComindHTML no usado en mexinol ===
+    const getComindHTML = (_p: any) => "";
 
-    const getDivpolHTML = (label: string, color: string, p: any) =>
-      `<div style="background:#0f1117;border:1px solid ${color}44;border-radius:8px;padding:9px 13px;min-width:160px;box-shadow:0 2px 12px ${color}22;position:relative">` +
-      `<button onclick="window.__closeDivpolPin()" style="position:absolute;top:5px;right:7px;background:none;border:none;color:#7f849c;font-size:14px;cursor:pointer;line-height:1" title="Cerrar">✕</button>` +
-      `<div style="display:flex;align-items:center;gap:7px">` +
-      `<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${color};opacity:0.8"></span>` +
-      `<span style="color:#7f849c;font-size:10.5px">${label}</span>` +
-      `</div>` +
-      `<div style="margin-top:5px;font-size:12.5px;color:${color};font-weight:600">${p.NOMGEO ?? "—"}</div>` +
-      `</div>`;
-
-    // Cursor pointer en hover para ambas capas
-    divpolLayers.forEach(({ id }) => {
-      map.on("mouseenter", id, () => { if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", id, () => { if (!checkMeasurement()) map.getCanvas().style.cursor = ""; });
-    });
-
-    // Click unificado: consulta ambas capas en el punto clickeado
-    map.on("click", (e: maplibregl.MapMouseEvent) => {
-      if (checkMeasurement()) return;
-      type Hit = { id: string; sourceLayer: string; label: string; color: string; f: any };
-      const hits: Hit[] = [];
-      for (const layer of divpolLayers) {
-        if (!map.getLayer(layer.id)) continue;
-        const feats = map.queryRenderedFeatures(e.point, { layers: [layer.id] });
-        if (feats.length > 0) hits.push({ ...layer, f: feats[0] });
-      }
-      if (hits.length === 0) return; // no tocó ent ni mun — otros handlers manejan el click
-
-      // Toggle: si todos los hits ya estaban anclados → desanclar todo
-      const allSame = hits.every(({ id, f }) => f.id != null && pinnedDivpol[id] === f.id);
-      unpinAllDivpol();
-      if (allSame) return;
-
-      // Anclar nuevos hits en tooltipManager (integrado con hover popup)
-      hits.forEach(({ id, sourceLayer, label, color, f }) => {
-        if (f.id != null) {
-          pinnedDivpol[id] = f.id;
-          setDivpolHover(id, sourceLayer, f.id);
-          setDivpolClicked(id, sourceLayer, f.id);
-        }
-        tooltipManager.pin(`_pin_${id}`, getDivpolHTML(label, color, f.properties), e.lngLat);
-      });
-    });
-
-    /*== Tooltip Zonas Culturales / Arqueológicas (INAH) ==*/
-    const color_cult = "#FFD740";
-    const getCultHTML = (p: any) =>
-      tc(color_cult, p.nombre ?? p.Nombre ?? "—", [
-        ["Estado",       p.nom_ent ?? p.NOM_ENT ?? "—"],
-        ["Municipio",    p.nom_mun ?? p.NOM_MUN ?? "—"],
-        ["Localización", p.localizacion ?? p.Localizacion ?? p.localización ?? "—"],
-      ]);
-    map.on("mouseenter", "zonascult", () => {
-      if (!checkMeasurement()) map.getCanvas().style.cursor = "pointer";
-    });
-    map.on("mousemove", "zonascult", (e: maplibregl.MapMouseEvent & { features?: Feature[] }) => {
-      if (checkMeasurement() || !e.features || e.features.length === 0) return;
-      const f = e.features[0] as any;
-      if (f.properties) tooltipManager.show("zonascult", getCultHTML(f.properties), e.lngLat);
-      setHoverPoint(f.geometry, color_cult);
-    });
-    map.on("mouseleave", "zonascult", () => {
-      if (!checkMeasurement()) { map.getCanvas().style.cursor = ""; tooltipManager.hide("zonascult"); clearHoverPoint(); }
-    });
 
   }, []);
 
@@ -2004,14 +1302,13 @@ const routeIdCounter = useRef(0);
 
       const [startPoint, endPoint] = points.map((p) => LngLat.convert(p));
 
-      /*== Calcular distancia en línea recta usando fórmula de Haversine ==*/
       const calculateDistance = (
         lat1: number,
         lon1: number,
         lat2: number,
         lon2: number,
       ) => {
-        const R = 6371; // Radio de la Tierra en km
+        const R = 6371;
         const dLat = ((lat2 - lat1) * Math.PI) / 180;
         const dLon = ((lon2 - lon1) * Math.PI) / 180;
         const a =
@@ -2023,7 +1320,6 @@ const routeIdCounter = useRef(0);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
       };
-      /*== Fin cálculo de distancia ==*/
       const distanceKm = calculateDistance(
         startPoint.lat,
         startPoint.lng,
@@ -2055,58 +1351,6 @@ const routeIdCounter = useRef(0);
     [clearCurrentPoints, drawSingleLineOnMap],
   );
 
-  const updateLayerVisibility = useCallback(
-    (map: maplibregl.Map) => {
-      Object.entries(layersVisibility).forEach(([id, visible]) => {
-        const vis = visible ? "visible" : "none";
-        try {
-          if (map.getLayer(id)) {
-            map.setLayoutProperty(id, "visibility", vis);
-          }
-          // También controlar la visibilidad del halo y pulso de comind
-          if (id === "comind") {
-            if (map.getLayer("comind-halo")) {
-              map.setLayoutProperty("comind-halo", "visibility", vis);
-            }
-            if (map.getLayer("comind-pulse")) {
-              map.setLayoutProperty("comind-pulse", "visibility", vis);
-            }
-          }
-          if (id === "ent") {
-            if (map.getLayer("ent-click-border")) map.setLayoutProperty("ent-click-border", "visibility", vis);
-            if (map.getLayer("ent-border")) map.setLayoutProperty("ent-border", "visibility", vis);
-          }
-          if (id === "camposres_comind") {
-            ["camposres_comind-halo", "camposres_comind-pulse"].forEach((sub) => {
-              if (map.getLayer(sub)) map.setLayoutProperty(sub, "visibility", vis);
-            });
-          }
-          if (id === "LocalidadesSedeINPI") {
-            ["LocalidadesSedeINPI-halo", "LocalidadesSedeINPI-pulse"].forEach((sub) => {
-              if (map.getLayer(sub)) map.setLayoutProperty(sub, "visibility", vis);
-            });
-          }
-        } catch {}
-      });
-      // Capas de utilidad (hover, rutas) → por encima de los datos
-      [
-        "ent-click-border",
-        "hover-polygon-fill", "hover-polygon-stroke",
-        "hover-point-glow", "hover-point",
-        "asentamientos-highlight", "asentamientos-labels",
-        "asentamientos-comind-dots", "asentamientos-comind-labels",
-      ].forEach((sub) => {
-        try { if (map.getLayer(sub)) map.moveLayer(sub); } catch {}
-      });
-      // Mantener camposres_comind siempre encima de todas las capas
-      ["camposres_comind-halo", "camposres_comind-pulse", "camposres_comind"].forEach((sub) => {
-        try { if (map.getLayer(sub)) map.moveLayer(sub); } catch {}
-      });
-    },
-    [layersVisibility],
-  );
-
-  // Función animateTerrainExaggeration para crear efecto de realce gradual
   const animateTerrainExaggeration = useCallback(
     (map: any, targetExaggeration: number, duration: number = 2000) => {
       const startTime = Date.now();
@@ -2116,7 +1360,6 @@ const routeIdCounter = useRef(0);
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        // Easing function para suavizar la animación
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
 
         const currentExaggeration =
@@ -2144,7 +1387,6 @@ const routeIdCounter = useRef(0);
     [],
   );
 
-  // Función toggle3D corregida para funcionar como switch
   const toggle3D = () => {
     const map = mapRef.current;
     if (!map) return;
@@ -2152,10 +1394,9 @@ const routeIdCounter = useRef(0);
     const currentCenter = map.getCenter();
     const currentZoom = map.getZoom();
     const currentBearing = map.getBearing();
-    const currentIsSatellite = isSatellite; // Estado del switch satelital
-    const newIs3D = !is3D; // Nuevo estado del switch 3D
+    const currentIsSatellite = isSatellite;
+    const newIs3D = !is3D;
 
-    // Limpiar efectos 3D actuales
     if (map.getTerrain()) {
       map.setTerrain(null);
     }
@@ -2168,7 +1409,6 @@ const routeIdCounter = useRef(0);
     const newStyle = getStyle(currentIsSatellite, newIs3D, isDarkRef.current);
     const isSatTerrain = currentIsSatellite && newIs3D;
 
-    // Siempre cambiar estilo (sat+3D usa inline sin calles)
     map.setStyle(newStyle, { diff: false });
 
     map.once("styledata", () => {
@@ -2179,49 +1419,6 @@ const routeIdCounter = useRef(0);
         linesData.forEach((line) => drawSingleLineOnMap(map, line));
         attachAllTooltipEvents(map);
 
-        // Reiniciar animación comind
-        if (blinkAnimationId.current) cancelAnimationFrame(blinkAnimationId.current);
-        const animateComindPulse = (timestamp: number) => {
-          blinkAnimationId.current = requestAnimationFrame(animateComindPulse);
-          try {
-            const pulseProgress = (Math.sin(timestamp / 1200) + 1) / 2;
-            const pulseRadius = 15 * (Math.abs(Math.sin(timestamp / 500)) + 0.5);
-            const pulseOpacity = 1 - pulseRadius / 25;
-            const haloOpacity = 0.1 + 0.15 * pulseProgress;
-            const currentRadius = 8 + 4 * pulseProgress;
-            const currentHaloRadius = 12 + 6 * pulseProgress;
-            if (map.getLayer("comind")) map.setPaintProperty("comind", "circle-radius", currentRadius);
-            if (map.getLayer("comind-halo")) {
-              map.setPaintProperty("comind-halo", "circle-radius", currentHaloRadius);
-              map.setPaintProperty("comind-halo", "circle-opacity", haloOpacity);
-            }
-            if (map.getLayer("comind-pulse")) {
-              map.setPaintProperty("comind-pulse", "circle-radius", pulseRadius);
-              map.setPaintProperty("comind-pulse", "circle-opacity", pulseOpacity * 0.4);
-            }
-            if (map.getLayer("camposres_comind")) map.setPaintProperty("camposres_comind", "circle-radius", 4 + 2 * pulseProgress);
-            if (map.getLayer("camposres_comind-halo")) {
-              map.setPaintProperty("camposres_comind-halo", "circle-radius", 10 + 6 * pulseProgress);
-              map.setPaintProperty("camposres_comind-halo", "circle-opacity", 0.08 + 0.12 * pulseProgress);
-            }
-            if (map.getLayer("camposres_comind-pulse")) {
-              map.setPaintProperty("camposres_comind-pulse", "circle-radius", pulseRadius * 0.9);
-              map.setPaintProperty("camposres_comind-pulse", "circle-stroke-opacity", pulseOpacity * 0.6);
-            }
-            if (map.getLayer("LocalidadesSedeINPI")) map.setPaintProperty("LocalidadesSedeINPI", "circle-radius", 3.2 + 1.2 * pulseProgress);
-            if (map.getLayer("LocalidadesSedeINPI-halo")) {
-              map.setPaintProperty("LocalidadesSedeINPI-halo", "circle-radius", 9 + 5 * pulseProgress);
-              map.setPaintProperty("LocalidadesSedeINPI-halo", "circle-opacity", 0.1 + 0.12 * pulseProgress);
-            }
-            if (map.getLayer("LocalidadesSedeINPI-pulse")) {
-              map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-radius", pulseRadius * 0.7);
-              map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-stroke-opacity", pulseOpacity * 0.55);
-            }
-          } catch {}
-        };
-        animateComindPulse(0);
-
-        // Restaurar posición
         map.jumpTo({
           center: currentCenter,
           zoom: currentZoom,
@@ -2229,8 +1426,6 @@ const routeIdCounter = useRef(0);
           pitch: 0,
         });
 
-        // sat+3D usa inline: terreno ya está en el spec; solo añadir sky + pitch
-        // sat solo o base: applyOrRemove3DEffects gestiona terreno y sky
         if (!isSatTerrain) {
           setTimeout(() => applyOrRemove3DEffects(map, newIs3D, currentIsSatellite), 200);
         } else if (newIs3D) {
@@ -2246,14 +1441,12 @@ const routeIdCounter = useRef(0);
       });
   };
 
-  // Función helper para aplicar o quitar efectos 3D
   const applyOrRemove3DEffects = (
     map: any,
     is3DActive: boolean,
     isSatelliteActive: boolean,
   ) => {
     if (is3DActive) {
-      // Aplicar efectos 3D
       try {
         if (!map.getSource("terrain-rgb")) {
           map.addSource("terrain-rgb", {
@@ -2267,13 +1460,11 @@ const routeIdCounter = useRef(0);
         const targetPitch = isSatelliteActive ? 60 : 70;
         const sunIntensity = isSatelliteActive ? 3 : 5;
 
-        // Iniciar con terreno sin exageración y animarlo
         map.setTerrain({
           source: "terrain-rgb",
-          exaggeration: 0.1, // Empezar con valor mínimo
+          exaggeration: 0.1,
         });
 
-        // Animar la exageración del terreno
         animateTerrainExaggeration(map, exaggeration, 2500);
 
         if (!map.getLayer("sky")) {
@@ -2283,7 +1474,6 @@ const routeIdCounter = useRef(0);
           map.addLayer({ id: "sky", type: "sky", paint: skyPaint } as any);
         }
 
-        // Animar inclinación solo si está plano
         const currentPitch = map.getPitch();
         if (currentPitch < 5) {
           map.easeTo({
@@ -2297,7 +1487,6 @@ const routeIdCounter = useRef(0);
         console.warn("Error aplicando efectos 3D:", error);
       }
     } else {
-      // Quitar efectos 3D
       try {
         const currentPitch = map.getPitch();
         if (currentPitch > 0) {
@@ -2332,7 +1521,7 @@ const routeIdCounter = useRef(0);
   const toggleMeasurement = () => {
     const wasMeasuring = isMeasuring;
     setIsMeasuring(!wasMeasuring);
-    setIsMeasuringLine(false); // Desactivar medición de línea si está activa
+    setIsMeasuringLine(false);
     if (wasMeasuring) clearAllRoutes();
     setCurrentPoints([]);
     setCurrentLinePoints([]);
@@ -2341,7 +1530,7 @@ const routeIdCounter = useRef(0);
   const toggleLineMeasurement = () => {
     const wasMeasuringLine = isMeasuringLine;
     setIsMeasuringLine(!wasMeasuringLine);
-    setIsMeasuring(false); // Desactivar medición de ruta si está activa
+    setIsMeasuring(false);
     if (wasMeasuringLine) clearAllRoutes();
     setCurrentPoints([]);
     setCurrentLinePoints([]);
@@ -2571,17 +1760,15 @@ const routeIdCounter = useRef(0);
     const currentCenter = map.getCenter();
     const currentZoom = map.getZoom();
     const currentBearing = map.getBearing();
-    const currentPitch = map.getPitch(); // GUARDAR EL PITCH ACTUAL
+    const currentPitch = map.getPitch();
     const was3D = is3D;
     const newIsSatellite = !isSatellite;
 
-    // Limpiar efectos 3D antes del cambio
     if (map.getTerrain()) map.setTerrain(null);
     if (map.getLayer("sky")) map.removeLayer("sky");
 
     setIsSatellite(newIsSatellite);
 
-    /*== Elección del estilo ==*/
     const newStyleUrl = getStyleUrl(newIsSatellite, was3D, isDarkRef.current);
 
     map.setStyle(newStyleUrl, { diff: false });
@@ -2593,59 +1780,14 @@ const routeIdCounter = useRef(0);
       linesData.forEach((line) => drawSingleLineOnMap(map, line));
       attachAllTooltipEvents(map);
 
-      // Reiniciar animación de pulso
-      if (blinkAnimationId.current) cancelAnimationFrame(blinkAnimationId.current);
-      const animateComindPulse = (timestamp: number) => {
-        blinkAnimationId.current = requestAnimationFrame(animateComindPulse);
-        try {
-          const pulseProgress = (Math.sin(timestamp / 1200) + 1) / 2;
-          const pulseRadius = 15 * (Math.abs(Math.sin(timestamp / 500)) + 0.5);
-          const pulseOpacity = 1 - pulseRadius / 25;
-          const haloOpacity = 0.1 + 0.15 * pulseProgress;
-          const currentRadius = 8 + 4 * pulseProgress;
-          const currentHaloRadius = 12 + 6 * pulseProgress;
-          if (map.getLayer("comind")) map.setPaintProperty("comind", "circle-radius", currentRadius);
-          if (map.getLayer("comind-halo")) {
-            map.setPaintProperty("comind-halo", "circle-radius", currentHaloRadius);
-            map.setPaintProperty("comind-halo", "circle-opacity", haloOpacity);
-          }
-          if (map.getLayer("comind-pulse")) {
-            map.setPaintProperty("comind-pulse", "circle-radius", pulseRadius);
-            map.setPaintProperty("comind-pulse", "circle-opacity", pulseOpacity * 0.4);
-          }
-          if (map.getLayer("camposres_comind")) map.setPaintProperty("camposres_comind", "circle-radius", 4 + 2 * pulseProgress);
-          if (map.getLayer("camposres_comind-halo")) {
-            map.setPaintProperty("camposres_comind-halo", "circle-radius", 10 + 6 * pulseProgress);
-            map.setPaintProperty("camposres_comind-halo", "circle-opacity", 0.08 + 0.12 * pulseProgress);
-          }
-          if (map.getLayer("camposres_comind-pulse")) {
-            map.setPaintProperty("camposres_comind-pulse", "circle-radius", pulseRadius * 0.9);
-            map.setPaintProperty("camposres_comind-pulse", "circle-stroke-opacity", pulseOpacity * 0.6);
-          }
-          if (map.getLayer("LocalidadesSedeINPI")) map.setPaintProperty("LocalidadesSedeINPI", "circle-radius", 3.2 + 1.2 * pulseProgress);
-          if (map.getLayer("LocalidadesSedeINPI-halo")) {
-            map.setPaintProperty("LocalidadesSedeINPI-halo", "circle-radius", 9 + 5 * pulseProgress);
-            map.setPaintProperty("LocalidadesSedeINPI-halo", "circle-opacity", 0.1 + 0.12 * pulseProgress);
-          }
-          if (map.getLayer("LocalidadesSedeINPI-pulse")) {
-            map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-radius", pulseRadius * 0.7);
-            map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-stroke-opacity", pulseOpacity * 0.55);
-          }
-        } catch {}
-      };
-      animateComindPulse(0);
-
-      // Restaurar posición con el pitch original
       map.jumpTo({
         center: currentCenter,
         zoom: currentZoom,
         bearing: currentBearing,
-        pitch: was3D ? currentPitch : 0, // Mantener pitch si estaba en 3D, sino 0
+        pitch: was3D ? currentPitch : 0,
       });
 
-      /*== REAPLICAR EFECTOS 3D SIN PITCH ANIMATION SI YA ESTABA EN 3D ==*/
       if (was3D) {
-        // Asegurar fuente de terreno
         if (!map.getSource("terrain-rgb")) {
           map.addSource("terrain-rgb", {
             type: "raster-dem",
@@ -2657,7 +1799,6 @@ const routeIdCounter = useRef(0);
         const exaggeration = newIsSatellite ? 1.2 : 1.5;
         const sunIntensity = newIsSatellite ? 3 : 5;
 
-        // Aplicar terreno con animación de exageración
         setTimeout(() => {
           map.setTerrain({ source: "terrain-rgb", exaggeration: 0.1 });
           animateTerrainExaggeration(map, exaggeration, 1500);
@@ -2684,9 +1825,8 @@ const routeIdCounter = useRef(0);
 
     const newIsDark = !isDarkRef.current;
     onToggleDark();
-    isDarkRef.current = newIsDark; // actualizar ref antes de cualquier uso
+    isDarkRef.current = newIsDark;
 
-    // Satelital o 3D activos: mantener su estilo, solo guardar estado
     if (isSatellite || is3D) return;
 
     const currentCenter = map.getCenter();
@@ -2699,53 +1839,11 @@ const routeIdCounter = useRef(0);
       routesData.forEach((route) => drawSingleRouteOnMap(map, route));
       linesData.forEach((line) => drawSingleLineOnMap(map, line));
       attachAllTooltipEvents(map);
-
-      if (blinkAnimationId.current) cancelAnimationFrame(blinkAnimationId.current);
-      const animateComindPulse = (timestamp: number) => {
-        blinkAnimationId.current = requestAnimationFrame(animateComindPulse);
-        try {
-          const pulseProgress = (Math.sin(timestamp / 1200) + 1) / 2;
-          const pulseRadius = 15 * (Math.abs(Math.sin(timestamp / 500)) + 0.5);
-          const pulseOpacity = 1 - pulseRadius / 25;
-          const haloOpacity = 0.1 + 0.15 * pulseProgress;
-          const currentRadius = 8 + 4 * pulseProgress;
-          const currentHaloRadius = 12 + 6 * pulseProgress;
-          if (map.getLayer("comind")) map.setPaintProperty("comind", "circle-radius", currentRadius);
-          if (map.getLayer("comind-halo")) {
-            map.setPaintProperty("comind-halo", "circle-radius", currentHaloRadius);
-            map.setPaintProperty("comind-halo", "circle-opacity", haloOpacity);
-          }
-          if (map.getLayer("comind-pulse")) {
-            map.setPaintProperty("comind-pulse", "circle-radius", pulseRadius);
-            map.setPaintProperty("comind-pulse", "circle-opacity", pulseOpacity * 0.4);
-          }
-          if (map.getLayer("camposres_comind")) map.setPaintProperty("camposres_comind", "circle-radius", 4 + 2 * pulseProgress);
-          if (map.getLayer("camposres_comind-halo")) {
-            map.setPaintProperty("camposres_comind-halo", "circle-radius", 10 + 6 * pulseProgress);
-            map.setPaintProperty("camposres_comind-halo", "circle-opacity", 0.08 + 0.12 * pulseProgress);
-          }
-          if (map.getLayer("camposres_comind-pulse")) {
-            map.setPaintProperty("camposres_comind-pulse", "circle-radius", pulseRadius * 0.9);
-            map.setPaintProperty("camposres_comind-pulse", "circle-stroke-opacity", pulseOpacity * 0.6);
-          }
-          if (map.getLayer("LocalidadesSedeINPI")) map.setPaintProperty("LocalidadesSedeINPI", "circle-radius", 3.2 + 1.2 * pulseProgress);
-          if (map.getLayer("LocalidadesSedeINPI-halo")) {
-            map.setPaintProperty("LocalidadesSedeINPI-halo", "circle-radius", 9 + 5 * pulseProgress);
-            map.setPaintProperty("LocalidadesSedeINPI-halo", "circle-opacity", 0.1 + 0.12 * pulseProgress);
-          }
-          if (map.getLayer("LocalidadesSedeINPI-pulse")) {
-            map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-radius", pulseRadius * 0.7);
-            map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-stroke-opacity", pulseOpacity * 0.55);
-          }
-        } catch {}
-      };
-      animateComindPulse(0);
-
       map.jumpTo({ center: currentCenter, zoom: currentZoom, bearing: currentBearing, pitch: 0 });
     });
   };
 
-  /*== Animación continua de la brújula (interpolación suave hacia el bearing del mapa) ==*/
+  /*== Animación continua de la brújula ==*/
   const animateCompass = useCallback(() => {
     const map = mapRef.current;
     if (!map) {
@@ -2756,10 +1854,8 @@ const routeIdCounter = useRef(0);
     const target = map.getBearing();
     const current = displayBearingRef.current;
 
-    // Diferencia mínima -180..180
     const diff = ((target - current + 540) % 360) - 180;
 
-    // Suavizado (ajusta 0.1..0.25 según prefieras)
     const next = current + diff * 0.15;
 
     displayBearingRef.current = next;
@@ -2779,12 +1875,12 @@ const routeIdCounter = useRef(0);
     const map = new maplibregl.Map({
       container,
       style: BASE_STYLE_URL,
-      center: [-102.67736, 23.65307],
-      zoom: 4.89,
+      center: [-109.05496, 25.62861],
+      zoom: 10.5,
       pitch: 0,
       bearing: 0,
       attributionControl: false,
-      maxBounds: mexicoBounds,
+      maxBounds: ahomeBounds,
       maxPitch: 85,
       fadeDuration: 0,
     });
@@ -2806,53 +1902,22 @@ const routeIdCounter = useRef(0);
 
       addVectorLayers(map);
 
-      // Ocultar todas las capas vectoriales al iniciar
-      [ 
-        "pozosap", "pozosc", "pozosi", "pozosp", "pozoss",
-        // Zonas geológicas
-        "zonaver", "zonatam", "zonacuencas", "zonaburgos", "zonaas", "zonaap",
-        // Social
-        "territoriospi", "com_ind",
-        // Riesgo Hídrico (4 niveles)
-        "riesgohic", "riesgohia", "riesgohim", "riesgohib", "riesgohc", "riesgoha",
-        // Provincias (12)
-        "burgos", "chihuahua", "cinturon_plegado_chiapas", "cinturon_plegado_smo",
-        "golfo_california", "golfo_mexico_profundo", "plataforma_yucatan",
-        "sabinas_burro_picachos", "sureste", "tampico_misantla", "veracruz", "vizcaino_purisima_iray",
-         // Campos (3 tipos)
-        "camposresas", "camposresm", "camposrest", "camposres_comind",
-        // Otros energía
-        "areaspotnc",
-        // Diputados (5 partidos)
-        "diputados_morena", "diputados_pri", "diputados_pan", "diputados_pvem", "diputados_pt",
-        // Ambiental
-        "anp", "zonascult",
-        // División política
-        "ent", "ent-border", "mun",
-        // Comunidades
-        "LocalidadesSedeINPI", "asentamientos",
-      ].forEach((id) => {
-        if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none");
-      });
-
-      // Capas visibles al iniciar
-      ["rm","camposres_comind", "camposrest"].forEach((layerId) => {
-        if (map.getLayer(layerId)) {
-          map.setLayoutProperty(layerId, "visibility", "visible");
+      // Aplicar visibilidad inicial desde el estado (ocultar todo y dejar visibles los indicados)
+      Object.keys(vis1Ref.current).forEach((id) => {
+        const vis = vis1Ref.current[id] ? "visible" : "none";
+        if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", vis);
+        [`${id}-border`, `${id}-glow`].forEach((companion) => {
+          if (map.getLayer(companion)) map.setLayoutProperty(companion, "visibility", vis);
+        });
+        if (id === "asent_com") {
+          ["asent_com-halo", "asent_com-pulse"].forEach((sub) => {
+            if (map.getLayer(sub)) map.setLayoutProperty(sub, "visibility", vis);
+          });
         }
       });
 
-      // Capas de utilidad por encima de los datos
-      [
-        "ent-click-border",
-        "hover-polygon-fill", "hover-polygon-stroke",
-        "hover-point-glow", "hover-point",
-        "asentamientos-highlight", "asentamientos-labels",
-      ].forEach((sub) => {
-        try { if (map.getLayer(sub)) map.moveLayer(sub); } catch {}
-      });
-      // camposres_comind siempre encima de todo
-      ["camposres_comind-halo", "camposres_comind-pulse", "camposres_comind"].forEach((sub) => {
+      // Capas de utilidad siempre encima de los datos
+      ["hover-point-glow", "hover-point"].forEach((sub) => {
         try { if (map.getLayer(sub)) map.moveLayer(sub); } catch {}
       });
 
@@ -2950,6 +2015,15 @@ const routeIdCounter = useRef(0);
             map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-radius", pulseRadius * 0.7);
             map.setPaintProperty("LocalidadesSedeINPI-pulse", "circle-stroke-opacity", pulseOpacity * 0.55);
           }
+          if (map.getLayer("asent_com")) map.setPaintProperty("asent_com", "circle-radius", 3.5 + 1.5 * pulseProgress);
+          if (map.getLayer("asent_com-halo")) {
+            map.setPaintProperty("asent_com-halo", "circle-radius", 9 + 5 * pulseProgress);
+            map.setPaintProperty("asent_com-halo", "circle-opacity", 0.1 + 0.14 * pulseProgress);
+          }
+          if (map.getLayer("asent_com-pulse")) {
+            map.setPaintProperty("asent_com-pulse", "circle-radius", pulseRadius * 0.8);
+            map.setPaintProperty("asent_com-pulse", "circle-stroke-opacity", pulseOpacity * 0.5);
+          }
         } catch {}
       };
       animateComindPulse(0);
@@ -2982,6 +2056,31 @@ const routeIdCounter = useRef(0);
     };
   }, [attachAllTooltipEvents, animateCompass]);
 
+  const updateLayerVisibility = React.useCallback(
+    (map: maplibregl.Map) => {
+      Object.entries(layersVisibility).forEach(([id, visible]) => {
+        const vis = visible ? "visible" : "none";
+        try {
+          if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", vis);
+          const borderLayer = `${id}-border`;
+          if (map.getLayer(borderLayer)) map.setLayoutProperty(borderLayer, "visibility", vis);
+          const glowLayer = `${id}-glow`;
+          if (map.getLayer(glowLayer)) map.setLayoutProperty(glowLayer, "visibility", vis);
+          if (id === "asent_com") {
+            ["asent_com-halo", "asent_com-pulse"].forEach((sub) => {
+              if (map.getLayer(sub)) map.setLayoutProperty(sub, "visibility", vis);
+            });
+          }
+        } catch {}
+      });
+      // Utility layers always on top
+      ["hover-point-glow", "hover-point"].forEach((sub) => {
+        try { if (map.getLayer(sub)) map.moveLayer(sub); } catch {}
+      });
+    },
+    [layersVisibility],
+  );
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -3001,22 +2100,7 @@ const routeIdCounter = useRef(0);
         if (!prop) return;
         try {
           if (!map.getLayer(id)) return;
-          // ent/mun: fill-opacity con feature-state para preservar hover y clicked
-          if (id === "ent" || id === "mun") {
-            const hoverOpacity = Math.min(opacity * 8, 1);
-            const expr = id === "mun"
-              ? ["case",
-                  ["boolean", ["feature-state", "clicked"], false], 0.3,
-                  0,
-                ]
-              : ["case",
-                  ["boolean", ["feature-state", "hover"], false], hoverOpacity,
-                  opacity * 0.1,
-                ];
-            map.setPaintProperty(id, "fill-opacity", expr as any);
-          } else {
-            map.setPaintProperty(id, prop, opacity);
-          }
+          map.setPaintProperty(id, prop, opacity);
         } catch {}
       });
     };
@@ -3033,6 +2117,16 @@ const routeIdCounter = useRef(0);
       const vis = visible ? "visible" : "none";
       try {
         if (map2.getLayer(id)) map2.setLayoutProperty(id, "visibility", vis);
+        // Companion layers: border + glow (E-escenarios, AIP, etc.)
+        const borderLayer = `${id}-border`;
+        if (map2.getLayer(borderLayer)) map2.setLayoutProperty(borderLayer, "visibility", vis);
+        const glowLayer = `${id}-glow`;
+        if (map2.getLayer(glowLayer)) map2.setLayoutProperty(glowLayer, "visibility", vis);
+        if (id === "asent_com") {
+          ["asent_com-halo", "asent_com-pulse"].forEach((sub) => {
+            if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
+          });
+        }
         if (id === "comind") {
           ["comind-halo", "comind-pulse"].forEach((sub) => {
             if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
@@ -3062,7 +2156,6 @@ const routeIdCounter = useRef(0);
     // Capas de utilidad siempre al frente
     [
       "ent-click-border",
-      "hover-polygon-fill", "hover-polygon-stroke",
       "hover-point-glow", "hover-point",
       "asentamientos-highlight", "asentamientos-labels",
       "asentamientos-comind-dots", "asentamientos-comind-labels",
@@ -3091,14 +2184,16 @@ const routeIdCounter = useRef(0);
     });
   };
 
-  /*== Panel 2 — ciclo de vida: crear al abrir, destruir al cerrar ==*/
+  /*== Panel 2 — ciclo de vida: crear al abrir, destruir al cerrar (con retraso para animación) ==*/
   useEffect(() => {
     if (!splitActive) {
-      if (map2Ref.current) {
-        map2Ref.current.remove();
-        map2Ref.current = null;
-      }
-      return;
+      const tid = setTimeout(() => {
+        if (map2Ref.current) {
+          map2Ref.current.remove();
+          map2Ref.current = null;
+        }
+      }, 440);
+      return () => clearTimeout(tid);
     }
     if (!container2Ref.current || map2Ref.current) return;
 
@@ -3110,6 +2205,18 @@ const routeIdCounter = useRef(0);
     vis2Ref.current = initVis;
     opa2Ref.current = initOpa;
     setSectionOrders2(sections.map((s) => s.items.map((i) => i.id)));
+    // Inicializar orden de hijos de grupos desde sections
+    const initGroups: Record<string, string[]> = {};
+    const extractGroups2 = (items: LegendItem[]) => {
+      items.forEach(item => {
+        if (item.type === "group" && item.children) {
+          initGroups[item.id] = item.children.map(c => c.id);
+          extractGroups2(item.children);
+        }
+      });
+    };
+    sections.forEach(s => extractGroups2(s.items));
+    setGroupChildOrders2(initGroups);
     const currentIsSat = isSatellite;
     const currentIs3D = is3D;
     setIsSatellite2(currentIsSat);
@@ -3124,7 +2231,7 @@ const routeIdCounter = useRef(0);
       pitch:  map1 ? map1.getPitch()  : 0,
       bearing: map1 ? map1.getBearing() : 0,
       attributionControl: false,
-      maxBounds: mexicoBounds,
+      maxBounds: ahomeBounds,
       maxPitch: 85,
     });
     map2Ref.current = map2;
@@ -3174,6 +2281,16 @@ const routeIdCounter = useRef(0);
         const vis = visible ? "visible" : "none";
         try {
           if (map2.getLayer(id)) map2.setLayoutProperty(id, "visibility", vis);
+          // Companion layers: border + glow (E-escenarios, AIP, etc.)
+          const borderLayer = `${id}-border`;
+          if (map2.getLayer(borderLayer)) map2.setLayoutProperty(borderLayer, "visibility", vis);
+          const glowLayer = `${id}-glow`;
+          if (map2.getLayer(glowLayer)) map2.setLayoutProperty(glowLayer, "visibility", vis);
+          if (id === "asent_com") {
+            ["asent_com-halo", "asent_com-pulse"].forEach((sub) => {
+              if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
+            });
+          }
           if (id === "comind") {
             ["comind-halo", "comind-pulse"].forEach((sub) => {
               if (map2.getLayer(sub)) map2.setLayoutProperty(sub, "visibility", vis);
@@ -3203,7 +2320,6 @@ const routeIdCounter = useRef(0);
       // Capas de utilidad siempre al frente
       [
         "ent-click-border",
-        "hover-polygon-fill", "hover-polygon-stroke",
         "hover-point-glow", "hover-point",
         "asentamientos-highlight", "asentamientos-labels",
         "asentamientos-comind-dots", "asentamientos-comind-labels",
@@ -3244,8 +2360,15 @@ const routeIdCounter = useRef(0);
     else map2.once("styledata", apply);
   }, [layersOpacity2]);
 
+  // Expansión recursiva igual que App.tsx: ID de grupo → IDs hoja
+  const expandId2 = (id: string): string[] => {
+    const children = groupChildOrders2[id];
+    if (!children) return [id];
+    return children.flatMap(expandId2);
+  };
+
   /*== Panel 2 — reordenar capas → map2 ==*/
-  const layerOrder2 = sectionOrders2.flat();
+  const layerOrder2 = sectionOrders2.flat().flatMap(expandId2);
   useEffect(() => {
     const map2 = map2Ref.current;
     if (!map2 || !layerOrder2.length) return;
@@ -3307,7 +2430,6 @@ const routeIdCounter = useRef(0);
       // Capas de utilidad (hover, rutas) que no están en el panel → subirlas por encima de los datos
       [
         "ent-click-border",
-        "hover-polygon-fill", "hover-polygon-stroke",
         "hover-point-glow", "hover-point",
         "asentamientos-highlight", "asentamientos-labels",
         "asentamientos-comind-dots", "asentamientos-comind-labels",
@@ -3435,20 +2557,32 @@ const routeIdCounter = useRef(0);
     setLayersOpacity2((prev) => ({ ...prev, [id]: value }));
   const handleReorder2 = (sectionIdx: number, newIds: string[]) =>
     setSectionOrders2((prev) => { const n = [...prev]; n[sectionIdx] = newIds; return n; });
+  const handleReorderChildren2 = (groupId: string, newChildIds: string[]) =>
+    setGroupChildOrders2((prev) => ({ ...prev, [groupId]: newChildIds }));
   const handleToggleAll2 = (visible: boolean) =>
     setLayersVisibility2((prev) =>
       Object.fromEntries(Object.keys(prev).map((id) => [id, visible])),
     );
 
   /*== Secciones del panel 2 — misma estructura, estado independiente ==*/
+  // Patch checked/opacity recursively for all nesting levels
+  const patchItems2 = (items: LegendItem[]): LegendItem[] =>
+    items.map((item) => {
+      if (item.type === "group") {
+        return { ...item, children: patchItems2(item.children ?? []) };
+      }
+      return {
+        ...item,
+        checked: layersVisibility2[item.id] ?? false,
+        opacity: layersOpacity2[item.id] ?? 1,
+      };
+    });
+
   const sections2: InfoBoxSection[] = sections.map((section) => ({
     ...section,
-    items: section.items.map((item) => ({
-      ...item,
-      checked: layersVisibility2[item.id] ?? false,
-      opacity: layersOpacity2[item.id] ?? 1,
-    })),
+    items: patchItems2(section.items),
   }));
+
 
   /*== Estilos de botones de control — reactivos al tema ==*/
   const controlStackStyle: React.CSSProperties = {
@@ -3505,17 +2639,22 @@ const routeIdCounter = useRef(0);
           position: "absolute",
           top: 0, bottom: 0, left: 0,
           right: splitActive ? `${100 - dividerX}%` : 0,
+          transition: "right 0.44s cubic-bezier(0.4,0,0.2,1)",
         }}
       />
 
-      {/* Panel 2 — derecho, solo visible cuando split activo */}
+      {/* Panel 2 — derecho, animado al abrir/cerrar */}
       <div
         ref={container2Ref}
         style={{
           position: "absolute",
           top: 0, bottom: 0,
-          left: `${dividerX}%`, right: 0,
-          display: splitActive ? "block" : "none",
+          left: splitActive ? `${dividerX}%` : "100%",
+          right: 0,
+          opacity: splitActive ? 1 : 0,
+          pointerEvents: splitActive ? "auto" : "none",
+          transition: "left 0.44s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease",
+          overflow: "hidden",
         }}
       />
 
@@ -3892,6 +3031,7 @@ const routeIdCounter = useRef(0);
                 onToggle={handleToggle2}
                 onOpacityChange={handleOpacityChange2}
                 onReorder={handleReorder2}
+                onReorderChildren={handleReorderChildren2}
                 onToggleAll={handleToggleAll2}
                 isDark={isDark}
                 xOffset="10px"

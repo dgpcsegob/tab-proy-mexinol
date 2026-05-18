@@ -45,6 +45,7 @@ type InfoBoxProps = {
   onToggle?: (id: string) => void;
   onOpacityChange?: (id: string, value: number) => void;
   onReorder?: (sectionIdx: number, newIds: string[]) => void;
+  onReorderChildren?: (groupId: string, newChildIds: string[]) => void;
   onToggleAll?: (visible: boolean) => void;
   initialOpen?: boolean;
   isDark?: boolean;
@@ -141,7 +142,7 @@ const GooToggle: React.FC<{
   );
 };
 
-/*== Fila de leyenda reutilizable (sin drag) — usada para hijos de grupos, soporta subgrupos ==*/
+/*== Fila reutilizable estática — solo para categorías internas (no sub-capas) ==*/
 const LegendRow: React.FC<{
   item: LegendItem;
   onToggle?: (id: string) => void;
@@ -253,21 +254,18 @@ const LegendRow: React.FC<{
   );
 };
 
-/*== Ítem arrastrable ==*/
-const SortableItem: React.FC<{
+/*== Ítem arrastrable — recursivo para cualquier nivel de anidamiento ==*/
+const SortableRow: React.FC<{
   item: LegendItem;
+  depth?: number;
   onToggle?: (id: string) => void;
   onOpacityChange?: (id: string, value: number) => void;
-}> = ({ item, onToggle, onOpacityChange }) => {
+  onReorderChildren?: (groupId: string, newChildIds: string[]) => void;
+}> = ({ item, depth = 0, onToggle, onOpacityChange, onReorderChildren }) => {
   const [collapsed, setCollapsed] = useState(!item.defaultOpen);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
+  const [childOrder, setChildOrder] = useState<string[]>(() => item.children?.map(c => c.id) ?? []);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -277,43 +275,61 @@ const SortableItem: React.FC<{
     borderRadius: isDragging ? 6 : undefined,
   };
 
-  /*== Grupo colapsable ==*/
+  const isChild = depth > 0;
+  const rowClass = `legend-row${isChild ? " legend-row-child" : ""}`;
+
   if (item.type === "group") {
-    const anyChecked = item.children?.some(c => c.checked) ?? false;
+    const childMap = Object.fromEntries((item.children ?? []).map(c => [c.id, c]));
+    const orderedChildren = childOrder.map(id => childMap[id]).filter(Boolean) as LegendItem[];
+    const anyChecked = orderedChildren.some(c =>
+      c.type === "group" ? (c.children ?? []).some(gc => gc.checked) : c.checked
+    );
     const handleGroupToggle = () => {
       const target = !anyChecked;
-      item.children?.forEach(child => {
-        if (!!child.checked !== target) onToggle?.(child.id);
+      const toggleLeaves = (items: LegendItem[]) => items.forEach(i => {
+        if (i.type === "group") toggleLeaves(i.children ?? []);
+        else if (!!i.checked !== target) onToggle?.(i.id);
       });
+      toggleLeaves(orderedChildren);
       setCollapsed(!target);
     };
-
+    const handleChildDragEnd = (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      setChildOrder(prev => {
+        const oldIdx = prev.indexOf(String(active.id));
+        const newIdx = prev.indexOf(String(over.id));
+        const newOrder = arrayMove(prev, oldIdx, newIdx);
+        onReorderChildren?.(item.id, newOrder);
+        return newOrder;
+      });
+    };
     return (
       <div ref={setNodeRef} style={style}>
-        <div className="legend-row legend-group-row">
+        <div className={`${rowClass} legend-group-row`}>
           <span className="drag-handle" {...attributes} {...listeners} title="Arrastrar para reordenar">⠿</span>
-          <button
-            className="group-expand-btn"
-            onClick={() => setCollapsed(v => !v)}
-            aria-label={collapsed ? "Expandir grupo" : "Colapsar grupo"}
-          >
+          <button className="group-expand-btn" onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? "Expandir grupo" : "Colapsar grupo"}>
             <svg width="10" height="10" viewBox="0 0 10 10"
               className={`group-chevron${collapsed ? "" : " open"}`} aria-hidden="true">
               <polyline points="2,2 8,5 2,8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <span className="legend-label legend-group-label">{item.label}</span>
-          <GooToggle
-            checked={anyChecked}
-            onChange={handleGroupToggle}
-            ariaLabel={`Activar/Desactivar ${item.label}`}
-          />
+          <GooToggle checked={anyChecked} onChange={handleGroupToggle}
+            ariaLabel={`Activar/Desactivar ${item.label}`} />
         </div>
         <div className={`group-children-wrapper${collapsed ? "" : " open"}`}>
-          <div className="group-children">
-            {item.children?.map(child => (
-              <LegendRow key={child.id} item={child} onToggle={onToggle} onOpacityChange={onOpacityChange} />
-            ))}
+          <div className="group-children" style={isChild ? { marginLeft: 12 } : undefined}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleChildDragEnd}>
+              <SortableContext items={childOrder} strategy={verticalListSortingStrategy}>
+                {orderedChildren.map(child => (
+                  <SortableRow key={child.id} item={child} depth={depth + 1}
+                    onToggle={onToggle} onOpacityChange={onOpacityChange}
+                    onReorderChildren={onReorderChildren} />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         </div>
       </div>
@@ -322,47 +338,26 @@ const SortableItem: React.FC<{
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="legend-row">
-        {/* Handle de arrastre */}
-        <span
-          className="drag-handle"
-          {...attributes}
-          {...listeners}
-          title="Arrastrar para reordenar"
-        >
-          ⠿
-        </span>
-
+      <div className={rowClass}>
+        <span className="drag-handle" {...attributes} {...listeners} title="Arrastrar para reordenar">⠿</span>
         {item.shape && item.color && (
           <span className={`shape ${item.shape}`} style={{ backgroundColor: item.color, width: 12, height: 12 }} />
         )}
-
         <span className="legend-label">{item.label}</span>
-
         {item.categories && (
-          <button
-            className="group-expand-btn"
-            onClick={() => setCollapsed(v => !v)}
-            aria-label={collapsed ? "Ver categorías" : "Ocultar categorías"}
-            style={{ marginRight: 4 }}
-          >
+          <button className="group-expand-btn" onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? "Ver categorías" : "Ocultar categorías"} style={{ marginRight: 4 }}>
             <svg width="10" height="10" viewBox="0 0 10 10"
               className={`group-chevron${collapsed ? "" : " open"}`} aria-hidden="true">
               <polyline points="2,2 8,5 2,8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
         )}
-
         {item.switch && (
-          <GooToggle
-            checked={!!item.checked}
-            onChange={() => onToggle && onToggle(item.id)}
-            ariaLabel={`Activar/Desactivar ${item.label}`}
-            color={item.color}
-          />
+          <GooToggle checked={!!item.checked} onChange={() => onToggle?.(item.id)}
+            ariaLabel={`Activar/Desactivar ${item.label}`} color={item.color} />
         )}
       </div>
-
       {item.categories && !collapsed && (
         <div className="group-children" style={{ marginLeft: 22 }}>
           {item.categories.map((cat, i) => (
@@ -374,37 +369,22 @@ const SortableItem: React.FC<{
           ))}
         </div>
       )}
-
       {item.switch && item.checked && (
         <div className="opacity-row">
-          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><title>Más transparente</title>
+          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <circle cx="12" cy="12" r="4" fill={item.color ?? "#1e5b4f"}/>
             <line x1="12" y1="2"  x2="12" y2="5"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
             <line x1="12" y1="19" x2="12" y2="22" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
             <line x1="2"  y1="12" x2="5"  y2="12" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
             <line x1="19" y1="12" x2="22" y2="12" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
-            <line x1="4.22"  y1="4.22"  x2="6.34"  y2="6.34"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
-            <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
-            <line x1="19.78" y1="4.22"  x2="17.66" y2="6.34"  stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
-            <line x1="6.34"  y1="17.66" x2="4.22"  y2="19.78" stroke={item.color ?? "#1e5b4f"} strokeWidth="2" strokeLinecap="round"/>
           </svg>
-          <input
-            type="range"
-            className="opacity-slider"
-            min={0}
-            max={1}
-            step={0.05}
+          <input type="range" className="opacity-slider" min={0} max={1} step={0.05}
             value={item.opacity ?? 1}
-            onChange={(e) =>
-              onOpacityChange &&
-              onOpacityChange(item.id, parseFloat(e.target.value))
-            }
+            onChange={(e) => onOpacityChange?.(item.id, parseFloat(e.target.value))}
             aria-label={`Opacidad de ${item.label}`}
-            style={item.color ? {
-              background: `linear-gradient(to right, #4a4a55, ${item.color})`,
-            } : undefined}
+            style={item.color ? { background: `linear-gradient(to right, #4a4a55, ${item.color})` } : undefined}
           />
-          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><title>Más opaco</title>
+          <svg className="opacity-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill={item.color ?? "#1e5b4f"}/>
           </svg>
         </div>
@@ -420,6 +400,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   onToggle,
   onOpacityChange,
   onReorder,
+  onReorderChildren,
   onToggleAll,
   initialOpen = true,
   isDark = false,
@@ -534,11 +515,13 @@ const InfoBox: React.FC<InfoBoxProps> = ({
                     strategy={verticalListSortingStrategy}
                   >
                     {orderedItems.map((item) => (
-                      <SortableItem
+                      <SortableRow
                         key={item.id}
                         item={item}
+                        depth={0}
                         onToggle={onToggle}
                         onOpacityChange={onOpacityChange}
+                        onReorderChildren={onReorderChildren}
                       />
                     ))}
                   </SortableContext>
